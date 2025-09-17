@@ -1,0 +1,26 @@
+{
+  "name": "kachinahealth-backend",
+  "version": "1.0.0",
+  "description": "Backend server for KachinaHealth client dashboard",
+  "main": "multi-tenant-server.js",
+  "scripts": {
+    "start": "node multi-tenant-server.js",
+    "dev": "nodemon multi-tenant-server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^7.0.6"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": [
+    "kachinahealth",
+    "clinical-trials",
+    "dashboard"
+  ],
+  "author": "KachinaHealth",
+  "license": "MIT"
+}

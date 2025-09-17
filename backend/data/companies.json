@@ -1,0 +1,158 @@
+{
+  "cerevasc": {
+    "name": "CereVasc",
+    "primaryColor": "#1976d2",
+    "users": [
+      {
+        "id": "u1756604271013",
+        "firstName": "Test",
+        "lastName": "Test",
+        "email": "wildabeastteam@outlook.com",
+        "site": "MGH",
+        "role": "Test",
+        "status": "approved",
+        "createdAt": "2025-08-31T01:37:51.013Z",
+        "analytics": {
+          "lastAppOpen": null,
+          "totalAppOpens": 0,
+          "tabViews": {
+            "leaderboard": 0,
+            "news": 0,
+            "resources": 0,
+            "messaging": 0
+          }
+        }
+      }
+    ],
+    "news": [
+      {
+        "id": "1755566206526",
+        "title": "New eShunt System Publication",
+        "content": "A recent study evaluating anatomical feasibility of the eShunt System in pediatric patients was published in the Journal of NeuroInterventional Surgery. One hundred patients (ages 1-18) were included in the study, and the results found the eShunt System feasible based on adult criteria in 67% of patients, with no age-based differences in eligibility.\n\nRead the publication here: https://pubmed.ncbi.nlm.nih.gov/40169197/",
+        "date": "2025-08-19",
+        "published": false,
+        "updatedDate": "2025-08-21"
+      }
+    ],
+    "pdfs": [
+      {
+        "id": "1755566607082",
+        "title": "Inside Stride Issue #1",
+        "description": "See attached a new issue of Inside Stride monthly newsletter.",
+        "category": "Updates",
+        "url": "http://localhost:3000/pdfs/cerevasc/1755566607082.pdf",
+        "uploadDate": "2025-08-19",
+        "size": "2.4 MB"
+      }
+    ],
+    "hospitals": [
+      {
+        "id": "h1",
+        "name": "Massachusetts General Hospital",
+        "location": "Boston, MA",
+        "principalInvestigator": "Dr. Aman Patel",
+        "consentedPatients": 8,
+        "randomizedPatients": 0,
+        "consentRate": 1.96
+      },
+      {
+        "id": "h2",
+        "name": "VCU Health",
+        "location": "Richmond, VA",
+        "principalInvestigator": "Dr. John Reavy-Cantwell",
+        "consentedPatients": 24,
+        "randomizedPatients": 11,
+        "consentRate": 2.69
+      },
+      {
+        "id": "h3",
+        "name": "Cleveland Clinic",
+        "location": "Cleveland, OH",
+        "principalInvestigator": "Dr. Mark Bain",
+        "consentedPatients": 6,
+        "randomizedPatients": 0,
+        "consentRate": 1.77
+      },
+      {
+        "id": "1755563538918",
+        "name": "Advocate Health Care",
+        "location": "Chicago, IL",
+        "principalInvestigator": "Dr. Demetrius Lopes",
+        "consentedPatients": 7,
+        "randomizedPatients": 1,
+        "consentRate": 2.13
+      },
+      {
+        "id": "1755564769607",
+        "name": "Albany Medical Center",
+        "location": "Albany, NY",
+        "principalInvestigator": "Dr. Alexandra Paul",
+        "consentedPatients": 19,
+        "randomizedPatients": 3,
+        "consentRate": 3.57
+      },
+      {
+        "id": "1755564795726",
+        "name": "Baptist Health Jacksonville",
+        "location": "Jacksonville, FL",
+        "principalInvestigator": "Dr. Ricardo Hanel",
+        "consentedPatients": 12,
+        "randomizedPatients": 1,
+        "consentRate": 1.95
+      },
+      {
+        "id": "1755564835900",
+        "name": "Beth Israel Deaconess Medical Center",
+        "location": "Boston, MA",
+        "principalInvestigator": "Dr. Christopher Ogilvy",
+        "consentedPatients": 2,
+        "randomizedPatients": 1,
+        "consentRate": 0.89
+      },
+      {
+        "id": "1755564862077",
+        "name": "Brigham & Women's Hospital",
+        "location": "Boston, MA",
+        "principalInvestigator": "Dr. Ali Aziz-Sultan",
+        "consentedPatients": 2,
+        "randomizedPatients": 0,
+        "consentRate": 1.38
+      },
+      {
+        "id": "1755564895893",
+        "name": "Clinica La Sagrada Familia",
+        "location": "Buenos Aires, Argentina",
+        "principalInvestigator": "Dr. Pedro Lylyk",
+        "consentedPatients": 16,
+        "randomizedPatients": 9,
+        "consentRate": 2.81
+      }
+    ],
+    "settings": {
+      "notifications": true,
+      "autoApproval": false
+    },
+    "credentials": {
+      "username": "cerevasc_admin",
+      "password": "CereVasc2024!"
+    },
+    "logoUrl": "http://127.0.0.1:3000/logos/cerevasc-logo.png"
+  },
+  "medtronic": {
+    "name": "Medtronic",
+    "primaryColor": "#d32f2f",
+    "users": [],
+    "news": [],
+    "pdfs": [],
+    "hospitals": [],
+    "settings": {
+      "notifications": true,
+      "autoApproval": true
+    },
+    "credentials": {
+      "username": "medtronic_admin",
+      "password": "Medtronic2024!"
+    },
+    "logoUrl": "http://127.0.0.1:3000/logos/medtronic-logo.svg"
+  }
+}
