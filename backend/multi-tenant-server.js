@@ -13,11 +13,7 @@ const PORT = 3000;
 app.use(cors());
 app.use(express.json());
 
-// Add these test endpoints to verify the server is working
-app.get('/health', (req, res) => {
-    res.send('OK');
-});
-
+// Add this test endpoint to verify the server is working
 app.get('/api/test', (req, res) => {
     res.json({ message: 'Server is working' });
 });
@@ -307,11 +303,18 @@ const authenticateClient = (req, res, next) => {
 
 // Health check
 app.get('/health', (req, res) => {
-  res.json({
-    status: 'OK',
-    timestamp: new Date().toISOString(),
-    message: 'Multi-tenant server running!'
-  });
+  try {
+    console.log('Health check request received');
+    res.json({
+      status: 'OK',
+      timestamp: new Date().toISOString(),
+      message: 'Multi-tenant server running!'
+    });
+    console.log('Health check response sent');
+  } catch (error) {
+    console.error('Error in health check:', error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // Logo health check
@@ -1452,7 +1455,11 @@ app.get('/test', (req, res) => {
 });
 
 // Start server
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, (err) => {
+  if (err) {
+    console.error('Error starting server:', err);
+    return;
+  }
   console.log(`🚀 Multi-tenant server running on port ${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/health`);
   console.log(`🔗 Client login: http://localhost:${PORT}/api/auth/client-login`);

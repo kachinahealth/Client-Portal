@@ -22,11 +22,8 @@ interface LoginForm {
 }
 
 export default function KachinaHealthLogin() {
-  const [formData, setFormData] = useState<LoginForm>({
-    companyId: '',
-    username: '',
-    password: ''
-  });
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -36,18 +33,17 @@ export default function KachinaHealthLogin() {
     setError('');
 
     try {
-      // This would connect to your backend to authenticate the client
-      const response = await fetch('/api/auth/client-login', {
+      const response = await fetch('http://localhost:3000/api/auth/client-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify({ companyId: 'cerevasc', username, password })
       });
 
       if (response.ok) {
-        // Redirect to client-specific dashboard
-        window.location.href = `/dashboard/${formData.companyId}`;
+        const data = await response.json();
+        window.location.href = `/dashboard/${data.company.id}`;
       } else {
-        setError('Invalid credentials. Please check your company ID, username, and password.');
+        setError('Invalid username or password');
       }
     } catch (err) {
       setError('Connection error. Please try again.');
@@ -56,179 +52,182 @@ export default function KachinaHealthLogin() {
     }
   };
 
-  const handleInputChange = (field: keyof LoginForm) => (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setFormData(prev => ({ ...prev, [field]: e.target.value }));
-  };
-
   return (
     <>
       <Head>
-        <title>KachinaHealth - Clinical Trial Management Platform</title>
-        <meta name="description" content="Multi-tenant platform for medical device companies to manage clinical trials" />
+        <title>KachinaHealth - Client Portal</title>
+        <style>{`
+          * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+          
+          body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2196f3 0%, #26a69a 50%, #66bb6a 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+          }
+          
+          .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 3rem;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+          }
+          
+          .header {
+            margin-bottom: 2.5rem;
+          }
+          
+          .logo-container {
+            margin-bottom: 1.5rem;
+            background: #1e1e1e;
+            padding: 1rem;
+            border-radius: 15px;
+            display: inline-block;
+          }
+          
+          .kachina-logo {
+            width: 120px;
+            height: 120px;
+            object-fit: contain;
+            margin: 0 auto;
+            border-radius: 15px;
+          }
+          
+          .subtitle {
+            color: #1976d2;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-top: 1rem;
+            letter-spacing: 1px;
+          }
+          
+          .form-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+          }
+          
+          label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: 600;
+            font-size: 0.9rem;
+          }
+          
+          input {
+            width: 100%;
+            padding: 0.875rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #fafafa;
+          }
+          
+          input:focus {
+            outline: none;
+            border-color: #1976d2;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+          }
+          
+          button {
+            width: 100%;
+            padding: 0.875rem;
+            background: #1976d2;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+          }
+          
+          button:hover {
+            background: #1565c0;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+          }
+          
+          button:active {
+            transform: translateY(0);
+          }
+          
+          button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+          }
+          
+          .error {
+            color: #d32f2f;
+            background: #ffebee;
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            display: none;
+            border-left: 4px solid #d32f2f;
+            font-size: 0.9rem;
+          }
+        `}</style>
       </Head>
       
-      <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50' }}>
-        {/* Header */}
-        <Box sx={{ bgcolor: 'primary.main', color: 'white', py: 3 }}>
-          <Container maxWidth="lg">
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <MedicalServices sx={{ fontSize: 40 }} />
-              <Typography variant="h4" component="h1" fontWeight="bold">
-                KachinaHealth
-              </Typography>
-            </Box>
-            <Typography variant="h6" sx={{ mt: 1, opacity: 0.9 }}>
-              Clinical Trial Management Platform
-            </Typography>
-          </Container>
-        </Box>
-
-        <Container maxWidth="lg" sx={{ py: 6 }}>
-          <Grid container spacing={4}>
-            {/* Login Form */}
-            <Grid item xs={12} md={5}>
-              <Paper elevation={3} sx={{ p: 4 }}>
-                <Typography variant="h5" component="h2" gutterBottom fontWeight="bold">
-                  Client Login
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                  Access your company's clinical trial dashboard
-                </Typography>
-
-                <form onSubmit={handleSubmit}>
-                  <TextField
-                    fullWidth
-                    label="Company ID"
-                    value={formData.companyId}
-                    onChange={handleInputChange('companyId')}
-                    margin="normal"
-                    required
-                    placeholder="e.g., cerevasc"
-                    helperText="Your unique company identifier"
-                  />
-                  
-                  <TextField
-                    fullWidth
-                    label="Username"
-                    value={formData.username}
-                    onChange={handleInputChange('username')}
-                    margin="normal"
-                    required
-                    placeholder="Enter your username"
-                  />
-                  
-                  <TextField
-                    fullWidth
-                    label="Password"
-                    type="password"
-                    value={formData.password}
-                    onChange={handleInputChange('password')}
-                    margin="normal"
-                    required
-                    placeholder="Enter your password"
-                  />
-
-                  {error && (
-                    <Alert severity="error" sx={{ mt: 2 }}>
-                      {error}
-                    </Alert>
-                  )}
-
-                  <Button
-                    type="submit"
-                    fullWidth
-                    variant="contained"
-                    size="large"
-                    disabled={loading}
-                    sx={{ mt: 3 }}
-                  >
-                    {loading ? <CircularProgress size={24} /> : 'Access Dashboard'}
-                  </Button>
-                </form>
-
-                <Typography variant="body2" color="text.secondary" sx={{ mt: 3, textAlign: 'center' }}>
-                  Need access? Contact{' '}
-                  <a href="mailto:support@kachinahealth.com" style={{ color: 'inherit' }}>
-                    support@kachinahealth.com
-                  </a>
-                </Typography>
-              </Paper>
-            </Grid>
-
-            {/* Features */}
-            <Grid item xs={12} md={7}>
-              <Typography variant="h4" component="h2" gutterBottom fontWeight="bold" color="primary.main">
-                Manage Your Clinical Trial Like Never Before
-              </Typography>
-              
-              <Typography variant="body1" paragraph sx={{ fontSize: '1.1rem', mb: 4 }}>
-                KachinaHealth provides medical device companies with a comprehensive platform to manage 
-                clinical trials, engage investigators, and track patient enrollment in real-time.
-              </Typography>
-
-              <Grid container spacing={3}>
-                <Grid item xs={12} sm={6}>
-                  <Card elevation={2}>
-                    <CardContent>
-                      <Business color="primary" sx={{ fontSize: 40, mb: 2 }} />
-                      <Typography variant="h6" gutterBottom>
-                        Multi-Tenant Platform
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Each company gets their own isolated environment with custom branding and data
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                </Grid>
-
-                <Grid item xs={12} sm={6}>
-                  <Card elevation={2}>
-                    <CardContent>
-                      <Security color="primary" sx={{ fontSize: 40, mb: 2 }} />
-                      <Typography variant="h6" gutterBottom>
-                        Secure & Compliant
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        HIPAA-compliant platform with enterprise-grade security and data isolation
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                </Grid>
-
-                <Grid item xs={12} sm={6}>
-                  <Card elevation={2}>
-                    <CardContent>
-                      <Analytics color="primary" sx={{ fontSize: 40, mb: 2 }} />
-                      <Typography variant="h6" gutterBottom>
-                        Real-Time Analytics
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Track enrollment metrics, investigator engagement, and trial progress
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                </Grid>
-
-                <Grid item xs={12} sm={6}>
-                  <Card elevation={2}>
-                    <CardContent>
-                      <MedicalServices color="primary" sx={{ fontSize: 40, mb: 2 }} />
-                      <Typography variant="h6" gutterBottom>
-                        Mobile-First Design
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Custom mobile apps for investigators with real-time notifications
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              </Grid>
-            </Grid>
-          </Grid>
-        </Container>
-      </Box>
+      <div className="container">
+        <div className="header">
+          <div className="logo-container">
+            <img src="/logos/logo.png" alt="KachinaHealth Logo" className="kachina-logo" />
+          </div>
+          <p className="subtitle">Client Portal</p>
+        </div>
+        
+        {error && (
+          <div className="error" style={{ display: 'block' }}>
+            {error}
+          </div>
+        )}
+        
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label htmlFor="username">Username</label>
+            <input
+              type="text"
+              id="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Enter your username"
+              required
+            />
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="password">Password</label>
+            <input
+              type="password"
+              id="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter your password"
+              required
+            />
+          </div>
+          
+          <button type="submit" disabled={loading}>
+            {loading ? 'Signing In...' : 'Sign In'}
+          </button>
+        </form>
+      </div>
     </>
   );
 }
