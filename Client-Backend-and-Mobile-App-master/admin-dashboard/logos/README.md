@@ -4,8 +4,8 @@ This directory contains the company logos used in the KachinaHealth multi-tenant
 
 ## Current Logos
 
-- **`cerevasc-logo.svg`** - CereVasc company logo
-- **`medtronic-logo.svg`** - Medtronic company logo
+- **`cerevasc-logo.svg`** - CV company logo
+- **`medtronic-logo.svg`** - MDT company logo
 
 ## How to Update Logos
 

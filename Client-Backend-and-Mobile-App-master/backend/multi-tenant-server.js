@@ -307,7 +307,7 @@ app.post('/api/auth/mobile/register', async (req, res) => {
         }
     };
 
-    // For demo, add to CereVasc company
+    // For demo, add here
     if (!companies.cerevasc.users) {
         companies.cerevasc.users = [];
     }

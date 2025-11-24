@@ -36,6 +36,13 @@ if (process.env.NODE_ENV !== 'production') {
   });
 }
 
+// Helper function for conditional logging
+const devLog = (message, ...args) => {
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(message, ...args);
+  }
+};
+
 // Middleware to verify JWT token
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
@@ -507,7 +514,7 @@ app.get('/api/users', authenticateToken, async (req, res) => {
 
     // Filter by clinical trial if specified (admin only)
     if (clinicalTrialId && userProfile.role === 'admin') {
-      console.log(`🔍 Filtering users by clinical trial: ${clinicalTrialId}`);
+      devLog(`🔍 Filtering users by clinical trial: ${clinicalTrialId}`);
       // Get user IDs that are assigned to this clinical trial
       const { data: assignmentData, error: assignmentError } = await supabase
         .from('user_clinical_assignments')
@@ -549,7 +556,7 @@ app.get('/api/users', authenticateToken, async (req, res) => {
     }
 
     if (process.env.NODE_ENV !== 'production') {
-      console.log(`📊 Returning ${data ? data.length : 0} users to frontend`);
+      devLog(`📊 Returning ${data ? data.length : 0} users to frontend`);
     }
 
     res.json({
@@ -1121,7 +1128,7 @@ app.put('/api/users/:userId/clinical-assignment', authenticateToken, async (req,
 // Get clinical trials for the authenticated user
 app.get('/api/clinical-trials', authenticateToken, async (req, res) => {
   try {
-    console.log('📨 GET /api/clinical-trials - Starting request');
+    devLog('📨 GET /api/clinical-trials - Starting request');
 
     // Get user's organization
     const userId = req.user.userId;
@@ -1142,7 +1149,7 @@ app.get('/api/clinical-trials', authenticateToken, async (req, res) => {
     const organizationId = userProfile.organization_id;
 
     // Query the existing clinical_trials table (filtered by organization)
-    console.log('📨 Executing query for clinical trials in organization:', organizationId);
+    devLog('📨 Executing query for clinical trials in organization:', organizationId);
     const { data, error } = await supabase
       .from('clinical_trials')
       .select('id, name, description, created_at')
@@ -1165,9 +1172,9 @@ app.get('/api/clinical-trials', authenticateToken, async (req, res) => {
       });
     }
 
-    console.log('📨 Query successful, found', data ? data.length : 0, 'clinical trials');
+    devLog('📨 Query successful, found', data ? data.length : 0, 'clinical trials');
     if (data && data.length > 0) {
-      console.log('📨 First trial:', data[0]);
+      devLog('📨 First trial:', data[0]);
     }
 
     // Map database columns to frontend expected format
@@ -1884,7 +1891,7 @@ app.get('/api/dashboard', authenticateToken, async (req, res) => {
 // Debug endpoint to check database tables
 app.get('/api/debug/tables', async (req, res) => {
   try {
-    console.log('🔍 Checking expected database tables...');
+    devLog('🔍 Checking expected database tables...');
 
     const expectedTables = ['users', 'news_updates', 'hospitals', 'training_materials', 'study_protocols', 'clinical_trials'];
     const tableStatus = {};
@@ -1951,7 +1958,7 @@ app.get('/api/news', authenticateToken, async (req, res) => {
     }
 
     const organizationId = userProfile.organization_id;
-    console.log('🔍 Getting news for organization:', organizationId, 'role:', userProfile.role);
+    devLog('🔍 Getting news for organization:', organizationId, 'role:', userProfile.role);
 
     // Get accessible trial IDs based on user role
     let accessibleTrialIds = [];
@@ -2038,8 +2045,8 @@ app.get('/api/news', authenticateToken, async (req, res) => {
       });
     }
 
-    console.log('🔍 All news items query result:', data);
-    console.log('🔍 Filtered news items for user:', data ? data.length : 0, 'items');
+    devLog('🔍 All news items query result:', data);
+    devLog('🔍 Filtered news items for user:', data ? data.length : 0, 'items');
 
     if (error) {
       console.error('Supabase query error:', error.message);
@@ -2051,7 +2058,7 @@ app.get('/api/news', authenticateToken, async (req, res) => {
       });
     }
 
-    console.log('🔍 Filtered news items for user:', data ? data.length : 0, 'items');
+    devLog('🔍 Filtered news items for user:', data ? data.length : 0, 'items');
 
     // Transform data to match frontend expectations
     const transformedNews = (data || []).map(item => ({
@@ -2765,7 +2772,7 @@ app.delete('/api/hospitals/:id', authenticateToken, async (req, res) => {
 // Get all training materials (authenticated and filtered by organization)
 app.get('/api/training-materials', authenticateToken, async (req, res) => {
   try {
-    console.log('📨 GET /api/training-materials - Starting request');
+    devLog('📨 GET /api/training-materials - Starting request');
     const userId = req.user.userId;
     const clinicalTrialId = req.query.clinical_trial_id;
 
@@ -3346,7 +3353,7 @@ app.get('/api/files/signed-url', authenticateToken, async (req, res) => {
 // Get all study protocols (temporary unauthenticated access for testing)
 app.get('/api/study-protocols', authenticateToken, async (req, res) => {
   try {
-    console.log('📨 GET /api/study-protocols - Starting request');
+    devLog('📨 GET /api/study-protocols - Starting request');
 
     // Get user's organization and role
     const userId = req.user.userId;
