@@ -7,7 +7,7 @@ Write-Host "========================================================" -Foregroun
 # Get the current directory (should be project root)
 $projectRoot = Get-Location
 $backendPath = Join-Path $projectRoot "backend"
-$frontendPath = Join-Path $projectRoot "Client-Backend-and-Mobile-App-master\admin-dashboard"
+$frontendPath = Join-Path $projectRoot "main-app\admin-dashboard"
 
 Write-Host "Project root: $projectRoot" -ForegroundColor Cyan
 Write-Host "Backend path: $backendPath" -ForegroundColor Cyan

@@ -328,9 +328,9 @@ Test that Row Level Security works correctly across different user roles:
 ### Setup Test Session
 ```sql
 -- Set session to specific user (replace with actual UUIDs)
-SET LOCAL auth.uid TO 'admin@cerevasc.com-uuid';
+SET LOCAL auth.uid TO 'admin@companya.com-uuid';
 -- OR
-SET LOCAL auth.uid TO 'dummy@cerevasc.com-uuid';
+SET LOCAL auth.uid TO 'user@companya.com-uuid';
 -- OR
 SET LOCAL auth.uid TO 'doctor@companya.com-uuid';
 ```
@@ -347,7 +347,7 @@ SELECT display_name, role FROM profiles;
 SELECT participant_name FROM enrollments;
 ```
 
-### Regular User Tests (dummy@cerevasc.com)
+### Regular User Tests (user@companya.com)
 ```sql
 -- Should only see assigned trials (Trial A)
 SELECT name FROM clinical_trials;
@@ -366,7 +366,7 @@ VALUES (
 );
 ```
 
-### Doctor User Tests (doctor@cerevasc.com)
+### Doctor User Tests (doctor@companya.com)
 ```sql
 -- Should only see assigned trials
 SELECT name FROM clinical_trials;

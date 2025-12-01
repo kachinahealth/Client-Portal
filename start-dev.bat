@@ -9,7 +9,7 @@ echo.
 REM Get the current directory
 set "PROJECT_ROOT=%~dp0"
 set "BACKEND_PATH=%PROJECT_ROOT%backend"
-set "FRONTEND_PATH=%PROJECT_ROOT%Client-Backend-and-Mobile-App-master\admin-dashboard"
+set "FRONTEND_PATH=%PROJECT_ROOT%main-app\admin-dashboard"
 
 echo Project root: %PROJECT_ROOT%
 echo Backend path: %BACKEND_PATH%

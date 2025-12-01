@@ -30,7 +30,7 @@ cd backend
 npm install
 
 # Frontend dependencies
-cd ../Client-Backend-and-Mobile-App-master/admin-dashboard
+cd ../main-app/admin-dashboard
 npm install
 ```
 
@@ -59,7 +59,7 @@ These scripts will automatically start both servers in separate windows and prov
 cd backend && npm start
 
 # Terminal 2: Frontend (run from project root)
-cd Client-Backend-and-Mobile-App-master/admin-dashboard && npm run dev
+cd main-app/admin-dashboard && npm run dev
 ```
 
 #### Option C: Using absolute paths (Windows/PowerShell)
@@ -69,7 +69,7 @@ cd "C:\PATH\TO\YOUR\PROJECT\backend"
 npm start
 
 # Terminal 2: Frontend
-cd "C:\PATH\TO\YOUR\PROJECT\Client-Backend-and-Mobile-App-master\admin-dashboard"
+cd "main-app\admin-dashboard"
 npm run dev
 ```
 
@@ -110,7 +110,7 @@ client-portal-app/
 │   ├── supabaseClient.js                # Supabase configuration
 │   ├── package.json                     # Optimized dependencies
 │   └── README.md                        # Backend documentation
-├── Client-Backend-and-Mobile-App-master/admin-dashboard/
+├── main-app/admin-dashboard/
 │   ├── pages/index.tsx                  # Login page
 │   ├── public/clienthome.html           # Full dashboard with all tabs
 │   ├── package.json                     # Frontend dependencies
@@ -206,7 +206,7 @@ client-portal-app/
 cd backend && npm start
 
 # Terminal 2: Frontend
-cd Client-Backend-and-Mobile-App-master/admin-dashboard && npm run dev
+cd main-app/admin-dashboard && npm run dev
 ```
 
 #### Windows/PowerShell Alternative
@@ -217,7 +217,7 @@ cd "C:\PATH\TO\YOUR\PROJECT\backend"
 npm start
 
 # Terminal 2: Frontend
-cd "C:\PATH\TO\YOUR\PROJECT\Client-Backend-and-Mobile-App-master\admin-dashboard"
+cd "main-app\admin-dashboard"
 npm run dev
 ```
 

@@ -1435,8 +1435,8 @@
             currentCompany = urlParams.get('company');
 
             if (!currentCompany) {
-                // Default to cerevasc if no company specified
-                currentCompany = 'cerevasc';
+                // Default to main company if no company specified
+                currentCompany = 'main';
             }
 
             // Load company info from localStorage or set defaults
@@ -1445,10 +1445,8 @@
                 companyInfo = JSON.parse(stored);
             } else {
                 companyInfo = {
-                    name: currentCompany === 'cerevasc' ? 'CereVasc' : 'Medtronic',
-                    logoUrl: currentCompany === 'cerevasc' 
-                        ? 'http://localhost:3000/logos/cerevasc-logo.png'
-                        : 'http://localhost:3000/logos/medtronic-logo.svg'
+                    name: 'KachinaHealth',
+                    logoUrl: 'http://localhost:3000/logos/logo.png'
                 };
                 // Store for future use
                 localStorage.setItem('companyInfo', JSON.stringify(companyInfo));
@@ -1676,6 +1674,7 @@
                     return null;
                 }
 
+                console.log('🔍 Fetching user profile...');
                 const response = await fetch('/api/user/profile', {
                     headers: {
                         'Content-Type': 'application/json',
@@ -1683,23 +1682,29 @@
                     }
                 });
 
+                console.log('📡 Profile response status:', response.status);
                 if (response.ok) {
                     const data = await response.json();
+                    console.log('📋 Profile data received:', data);
                     if (data.success && data.profile) {
                         currentUserRole = data.profile.role;
-                        console.log('📋 User role loaded:', currentUserRole);
+                        console.log('✅ User role loaded:', currentUserRole);
                         return data.profile;
+                    } else {
+                        console.error('❌ Profile response missing success/profile:', data);
                     }
                 } else {
-                    console.error('Failed to fetch user profile:', response.status);
+                    const errorText = await response.text();
+                    console.error('❌ Failed to fetch user profile:', response.status, errorText);
                 }
             } catch (error) {
-                console.error('Error fetching user profile:', error);
+                console.error('❌ Error fetching user profile:', error);
             }
             return null;
         }
 
         function initializeTabs() {
+            console.log('🎯 Initializing tabs with currentUserRole:', currentUserRole);
             const tabButtonsContainer = document.querySelector('.tab-buttons');
             const tabContents = document.querySelectorAll('.tab-content');
 
@@ -1718,10 +1723,14 @@
                 { index: 7, name: 'Settings', show: true }
             ];
 
+            console.log('📋 All tabs configuration:', allTabs);
+
             // Filter tabs based on user role and create buttons
             let visibleTabIndex = 0;
+            console.log('🔄 Creating tab buttons...');
             allTabs.forEach(tab => {
                 if (tab.show) {
+                    console.log(`✅ Creating tab: ${tab.name} (index: ${tab.index})`);
                     const button = document.createElement('button');
                     button.className = 'tab-button' + (visibleTabIndex === 0 ? ' active' : '');
                     button.onclick = () => showTab(tab.index);
@@ -1740,6 +1749,7 @@
 
                     visibleTabIndex++;
                 } else {
+                    console.log(`❌ Skipping tab: ${tab.name} (index: ${tab.index}) - show: ${tab.show}`);
                     // Hide tab content for non-visible tabs
                     const content = document.getElementById(`tab${tab.index}`);
                     if (content) {
@@ -1747,6 +1757,8 @@
                     }
                 }
             });
+
+            console.log(`📊 Total visible tabs created: ${visibleTabIndex}`);
 
             console.log(`📋 Tabs initialized for role: ${currentUserRole}`);
         }

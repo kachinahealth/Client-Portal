@@ -144,9 +144,7 @@ app.get('/logos-health', (req, res) => {
     res.json({
       status: 'OK',
       logosPath: logosDir,
-      availableLogos: logoFiles,
-      cerevascLogoExists: fs.existsSync(path.join(logosDir, 'cerevasc-logo.png')),
-      cerevascLogoPath: path.join(logosDir, 'cerevasc-logo.png')
+      availableLogos: logoFiles
     });
   } catch (error) {
     res.status(500).json({
@@ -307,11 +305,18 @@ app.post('/api/auth/mobile/register', async (req, res) => {
         }
     };
 
-    // For demo, add to CereVasc company
-    if (!companies.cerevasc.users) {
-        companies.cerevasc.users = [];
+    // For demo, add to default company
+    const defaultCompanyId = 'main';
+    if (!companies[defaultCompanyId]) {
+        companies[defaultCompanyId] = {
+            credentials: { username: 'admin', password: 'admin' },
+            users: []
+        };
     }
-    companies.cerevasc.users.push(newUser);
+    if (!companies[defaultCompanyId].users) {
+        companies[defaultCompanyId].users = [];
+    }
+    companies[defaultCompanyId].users.push(newUser);
 
     // Save to file
     try {

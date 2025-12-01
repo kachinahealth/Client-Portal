@@ -37,7 +37,7 @@ KachinaHealth is a **Software-as-a-Service (SaaS)** platform that provides medic
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd Client-Backend-and-Mobile-App-master
+   cd main-app
    ```
 
 2. **Install backend dependencies**

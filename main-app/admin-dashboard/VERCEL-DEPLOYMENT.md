@@ -36,7 +36,7 @@ Create these private storage buckets in Supabase:
    - Go to [vercel.com](https://vercel.com)
    - Click "New Project"
    - Import your repository
-   - Set the root directory to: `Client-Backend-and-Mobile-App-master/admin-dashboard`
+   - Set the root directory to: `main-app/admin-dashboard`
 
 2. **Configure Environment Variables**:
    In Vercel dashboard → Project Settings → Environment Variables, add:
@@ -57,7 +57,7 @@ Create these private storage buckets in Supabase:
 npm install -g vercel
 
 # Deploy
-cd Client-Backend-and-Mobile-App-master/admin-dashboard
+cd main-app/admin-dashboard
 vercel --prod
 
 # Set environment variables

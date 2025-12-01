@@ -112,7 +112,7 @@ BEGIN
         notes,
         storage_path
     ) VALUES (
-        cerevasc_org_id,
+        company_a_org_id,
         trial_a_id,
         'Example Patient',
         CURRENT_DATE,

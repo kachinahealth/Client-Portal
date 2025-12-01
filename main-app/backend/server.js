@@ -1,23 +1,27 @@
 const express = require('express');
+const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const compression = require('compression');
 const rateLimit = require('express-rate-limit');
+require('dotenv').config();
+
+// Note: Route modules not yet implemented - using inline routes for now
 
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
 // Security middleware
 app.use(helmet());
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:19006'],
+  origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000', 'http://localhost:19006'],
   credentials: true
 }));
 
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
   message: {
     error: 'Too many requests',
     message: 'Please try again later'
@@ -43,31 +47,31 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Test endpoints
+// API routes (inline implementation)
+app.get('/api/auth/status', (req, res) => {
+  res.json({ status: 'Auth service available', timestamp: new Date().toISOString() });
+});
+
+app.get('/api/leaderboard', (req, res) => {
+  res.json({
+    message: 'Leaderboard service available',
+    data: [],
+    timestamp: new Date().toISOString()
+  });
+});
+
+app.get('/api/news', (req, res) => {
+  res.json({
+    message: 'News service available',
+    data: [],
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Test endpoints for quick verification
 app.get('/api/test', (req, res) => {
   res.json({
     message: 'API is working!',
-    timestamp: new Date().toISOString()
-  });
-});
-
-app.get('/api/auth/test', (req, res) => {
-  res.json({
-    message: 'Auth endpoint accessible!',
-    timestamp: new Date().toISOString()
-  });
-});
-
-app.get('/api/leaderboard/test', (req, res) => {
-  res.json({
-    message: 'Leaderboard endpoint accessible!',
-    timestamp: new Date().toISOString()
-  });
-});
-
-app.get('/api/news/test', (req, res) => {
-  res.json({
-    message: 'News endpoint accessible!',
     timestamp: new Date().toISOString()
   });
 });
@@ -90,35 +94,10 @@ app.use((error, req, res, next) => {
 });
 
 // Start server directly
-const server = app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/health`);
   console.log(`🔗 API base: http://localhost:${PORT}/api`);
-  console.log(`📝 Test endpoints:`);
-  console.log(`   - http://localhost:${PORT}/api/test`);
-  console.log(`   - http://localhost:${PORT}/api/auth/test`);
-  console.log(`   - http://localhost:${PORT}/api/leaderboard/test`);
-  console.log(`   - http://localhost:${PORT}/api/news/test`);
-});
-
-server.on('error', (error) => {
-  console.error('Server error:', error);
-});
-
-process.on('SIGINT', () => {
-  console.log('SIGINT received, shutting down gracefully...');
-  server.close(() => {
-    console.log('Server closed');
-    process.exit(0);
-  });
-});
-
-process.on('SIGTERM', () => {
-  console.log('SIGTERM received, shutting down gracefully...');
-  server.close(() => {
-    console.log('Server closed');
-    process.exit(0);
-  });
 });
 
 module.exports = app;

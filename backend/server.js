@@ -216,53 +216,66 @@ app.get('/api/auth/verify', authenticateToken, (req, res) => {
 // Get user profile with organization and role information
 app.get('/api/user/profile', authenticateToken, async (req, res) => {
   try {
-    const userId = req.user.userId;
+    const userEmail = req.user.email;
+    console.log('🔍 Profile request for email:', userEmail);
 
-    // Get profile with organization and role information
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select(`
-        id,
-        role,
-        display_name,
-        created_at,
-        organizations (
-          id,
-          name
-        )
-      `)
-      .eq('id', userId)
+    // Get user profile from users table (matching by email since that's what we have from JWT)
+    const { data: userProfile, error: profileError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', userEmail)
       .single();
 
     if (profileError) {
-      console.error('Profile fetch error:', profileError);
+      console.error('❌ Profile fetch error:', profileError);
+      console.error('❌ Available error details:', JSON.stringify(profileError, null, 2));
+
+      // Try to see what users exist in the table for debugging
+      const { data: allUsers, error: listError } = await supabase
+        .from('users')
+        .select('email, role, name')
+        .limit(10);
+
+      if (!listError) {
+        console.log('📋 Available users in database:', allUsers);
+      }
+
       return res.status(400).json({
         success: false,
         message: 'Failed to fetch user profile',
-        error: profileError.message
+        error: profileError.message,
+        debug: {
+          requestedEmail: userEmail,
+          availableUsers: listError ? 'Could not list users' : allUsers?.map(u => ({ email: u.email, role: u.role }))
+        }
       });
     }
 
+    console.log('✅ Found user profile:', { email: userProfile.email, role: userProfile.role, name: userProfile.name });
+
     // Get auth user information
-    const { data: authUser, error: authError } = await supabase.auth.admin.getUserById(userId);
+    const { data: authUser, error: authError } = await supabase.auth.admin.getUserById(req.user.userId);
 
     if (authError) {
       console.error('Auth user fetch error:', authError);
       // Continue without auth details if there's an error
     }
 
-    res.json({
+    const profileResponse = {
       success: true,
       profile: {
-        id: profile.id,
-        email: authUser?.user?.email || req.user.email,
-        name: profile.display_name || authUser?.user?.email || req.user.email,
-        role: profile.role,
-        organization: profile.organizations,
-        created_at: profile.created_at,
+        id: userProfile.id,
+        email: userProfile.email,
+        name: userProfile.name,
+        role: userProfile.role,
+        site: userProfile.site,
+        created_at: userProfile.created_at,
         last_sign_in_at: authUser?.user?.last_sign_in_at
       }
-    });
+    };
+
+    console.log('📤 Sending profile response:', profileResponse);
+    res.json(profileResponse);
   } catch (err) {
     console.error('Profile fetch error:', err);
     res.status(500).json({
@@ -577,12 +590,27 @@ app.post('/api/users', authenticateToken, async (req, res) => {
         });
       }
 
+      // Get default organization (first organization in the database)
+      const { data: defaultOrg, error: orgError } = await supabase
+        .from('organizations')
+        .select('id')
+        .limit(1)
+        .single();
+
+      if (orgError) {
+        console.error('Failed to get default organization:', orgError);
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to get default organization'
+        });
+      }
+
       // Auto-create profile with default values
       const { data: newProfile, error: createError } = await supabase
         .from('profiles')
         .insert({
           id: inviterUserId,
-          organization_id: '9c38a8ff-b312-430a-bfd1-f1f4ac0c6902', // Default to Cerevasc org
+          organization_id: defaultOrg.id,
           role: 'user', // Default role
           display_name: user.email || 'New User'
         })

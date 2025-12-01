@@ -1,0 +1,44 @@
+{
+  "name": "kachina-health-client-portal",
+  "version": "1.0.0",
+  "description": "Multi-tenant client portal for medical device companies",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && npm start",
+    "dev:frontend": "cd main-app/admin-dashboard && npm run dev:local",
+    "dev:frontend:only": "cd main-app/admin-dashboard && npm run dev:local",
+    "dev:backend:only": "cd backend && npm start",
+    "build": "cd main-app/admin-dashboard && npm run build",
+    "build:analyze": "cd main-app/admin-dashboard && npm run build:analyze",
+    "start": "cd main-app/admin-dashboard && npm start",
+    "lint": "cd main-app/admin-dashboard && npm run lint",
+    "lint:fix": "cd main-app/admin-dashboard && npm run lint:fix",
+    "type-check": "cd main-app/admin-dashboard && npm run type-check",
+    "install:all": "npm install && cd backend && npm install && cd ../main-app/admin-dashboard && npm install",
+    "clean": "rm -rf node_modules backend/node_modules main-app/admin-dashboard/node_modules && npm run install:all",
+    "test": "cd main-app/admin-dashboard && npm test",
+    "docker:dev": "docker-compose up --build",
+    "docker:build": "docker-compose build",
+    "docker:down": "docker-compose down"
+  },
+  "keywords": [
+    "medical-device",
+    "clinical-trial",
+    "multi-tenant",
+    "saas",
+    "nextjs",
+    "supabase"
+  ],
+  "author": "KachinaHealth",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.0",
+    "cross-env": "^7.0.3",
+    "wait-on": "^7.0.1"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}
