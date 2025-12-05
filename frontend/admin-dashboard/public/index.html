@@ -3,46 +3,252 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KachinaHealth - Client Portal</title>
-    <script>
-        // Auto-redirect to dashboard (assuming user is already authenticated)
-        // In production, you might want authentication check here
-        window.location.href = '/clienthome.html';
-    </script>
+    <title>KachinaHealth - Client Portal Login</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e3f2fd 25%, #e0f2f1 50%, #f1f8e9 75%, #f9fbe7 100%);
+            background: linear-gradient(135deg, #2196f3 0%, #26a69a 50%, #66bb6a 100%);
+            min-height: 100vh;
             display: flex;
-            justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
+            justify-content: center;
+            padding: 20px;
         }
-        .loading {
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 3rem;
+            width: 100%;
+            max-width: 400px;
             text-align: center;
+        }
+
+        .header {
+            margin-bottom: 2.5rem;
+        }
+
+        .logo-container {
+            margin-bottom: 1.5rem;
+            background: #1e1e1e;
+            padding: 1rem;
+            border-radius: 15px;
+            display: inline-block;
+        }
+
+        .kachina-logo {
+            width: 120px;
+            height: 120px;
+            object-fit: contain;
+            margin: 0 auto;
+            border-radius: 15px;
+        }
+
+        .subtitle {
             color: #1976d2;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-top: 1rem;
+            letter-spacing: 1px;
         }
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #1976d2;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
+
+        .form-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.875rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #fafafa;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #1976d2;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+        }
+
+        button {
+            width: 100%;
+            padding: 0.875rem;
+            background: #1976d2;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: #1565c0;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .error {
+            color: #d32f2f;
+            background: #ffebee;
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            display: none;
+            border-left: 4px solid #d32f2f;
+            font-size: 0.9rem;
+        }
+
+        .loading {
+            display: none;
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 1rem;
         }
     </style>
 </head>
 <body>
-    <div class="loading">
-        <div class="spinner"></div>
-        <h2>Loading KachinaHealth Dashboard...</h2>
-        <p>If you're not redirected automatically, <a href="/clienthome.html">click here</a>.</p>
+    <div class="container">
+        <div class="header">
+            <div class="logo-container">
+                <img src="/logos/logo.png" alt="KachinaHealth Logo" class="kachina-logo" />
+            </div>
+            <p class="subtitle">Client Portal</p>
+        </div>
+
+        <div id="error" class="error"></div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input
+                    type="email"
+                    id="email"
+                    placeholder="Enter your email"
+                    required
+                />
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input
+                    type="password"
+                    id="password"
+                    placeholder="Enter your password"
+                    required
+                />
+            </div>
+
+            <button type="submit" id="submitBtn">Sign In</button>
+        </form>
+
+        <div id="loading" class="loading">Signing you in...</div>
     </div>
-</body>
+
+    <script>
+        // API URL configuration for different environments
+        window.API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:5000'
+            : (window.location.protocol + '//' + window.location.hostname.replace('login', 'api') ||
+               'https://api.your-backend-service.onrender.com');
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const submitBtn = document.getElementById('submitBtn');
+            const errorDiv = document.getElementById('error');
+            const loadingDiv = document.getElementById('loading');
+
+            // Reset state
+            errorDiv.style.display = 'none';
+            loadingDiv.style.display = 'none';
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Signing In...';
+
+            try {
+                const response = await fetch(`${window.API_BASE_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    // Store JWT token for authentication
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    // Redirect to client home
+                    window.location.href = '/clienthome.html';
+                } else {
+                    const errorData = await response.json();
+                    errorDiv.textContent = errorData.message || 'Invalid email or password';
+                    errorDiv.style.display = 'block';
+                }
+            } catch (err) {
+                console.error('Login error:', err);
+                errorDiv.textContent = 'Connection error. Please try again.';
+                errorDiv.style.display = 'block';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Sign In';
+            }
+        });
+
+        // Check if user is already logged in
+        const token = localStorage.getItem('token');
+        if (token) {
+            // Verify token is still valid
+            fetch(`${window.API_BASE_URL}/api/auth/verify`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            }).then(response => {
+                if (response.ok) {
+                    // Token is valid, redirect to dashboard
+                    window.location.href = '/clienthome.html';
+                } else {
+                    // Token is invalid, clear it
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                }
+            }).catch(() => {
+                // Network error, keep user on login page
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+            });
+        }
+    </script>
 </html>
