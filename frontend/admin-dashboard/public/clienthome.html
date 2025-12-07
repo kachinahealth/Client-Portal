@@ -1059,7 +1059,6 @@
                 <button class="tab-button" onclick="showTab(5)">Study Protocol</button>
                 <button class="tab-button" onclick="showTab(6)">Analytics</button>
                 <button class="tab-button" onclick="showTab(7)">Messaging</button>
-                <button class="tab-button" onclick="showTab(8)">Settings</button>
             </div>
 
             <div class="tab-content active" id="tab0">
@@ -1504,7 +1503,7 @@
                 </div>
             </div>
 
-            <div class="tab-content" id="tab5">
+            <div class="tab-content" id="tab6">
                 <h3>Analytics</h3>
                 
                 <div class="analytics-header">
@@ -1564,59 +1563,61 @@
             </div>
 
             <div class="tab-content" id="tab6">
-                <h3>Company Settings</h3>
-                <p>Company configuration and preferences will be managed here.</p>
-                <p>This could include:</p>
-                <ul style="margin-left: 2rem; margin-top: 1rem;">
-                    <li>Notification preferences</li>
-                    <li>Auto-approval settings</li>
-                    <li>Branding customization</li>
-                    <li>Security settings</li>
-                </ul>
-            </div>
+                <h3>Analytics</h3>
 
-            <div class="tab-content" id="tab7">
-                <h3>Debug & Troubleshooting</h3>
-                
-                <div class="debug-panel">
-                    <h4>Logo Loading Status</h4>
-                    <pre id="logoDebugInfo">Checking logo loading...</pre>
+                <div class="analytics-header">
+                    <h4>User Engagement Analytics</h4>
+                    <button onclick="refreshAnalytics()" class="btn-primary">
+                        <i class="fas fa-sync"></i> Refresh Data
+                    </button>
                 </div>
 
-                <div class="debug-panel">
-                    <h4>Company Information</h4>
-                    <pre id="companyDebugInfo">Loading company info...</pre>
+                <div class="analytics-filters">
+                    <select id="analyticsFilter" onchange="filterAnalytics()">
+                        <option value="all">All Users</option>
+                        <option value="active">Active Users (Last 7 Days)</option>
+                    </select>
                 </div>
 
-                <div class="debug-panel">
-                    <h4>Logo Test Links</h4>
-                    <button onclick="testLogoAccess()">Test Logo Access</button>
-                    <div id="logoTestResults" style="margin-top: 1rem;"></div>
-                </div>
-
-                <div class="debug-panel">
-                    <h4>API Testing</h4>
-                    <button onclick="testHospitalAPI()">Test Hospital API</button>
-                    <button onclick="testServerConnectivity()">Test Server Connection</button>
-                    <button onclick="testBasicEndpoint()">Test Basic Endpoint</button>
-                    <button onclick="checkAvailableEndpoints()">Check Endpoints</button>
-                    <pre id="apiTestResults">Click buttons to test APIs...</pre>
-                </div>
-
-                <div class="debug-panel">
-                    <h4>Data Management</h4>
-                    <button onclick="exportCurrentData()">Export Current Data</button>
-                    <button onclick="showRestoreForm()">Restore Data</button>
-                    <button onclick="exportFromLeaderboard()">Export from Leaderboard</button>
-                    
-                    <div id="restoreForm">
-                        <h5>Paste your backup data below:</h5>
-                        <textarea id="restoreDataTextarea" placeholder="Paste your JSON backup data here..."></textarea>
-                        <button class="btn-primary" onclick="restoreData()">Restore Data</button>
-                        <button class="btn" onclick="hideRestoreForm()">Cancel</button>
+                <div class="analytics-grid" id="analyticsGrid">
+                    <div class="analytics-card">
+                        <h5>Total Users</h5>
+                        <div class="metric" id="totalUsers">0</div>
                     </div>
-                    
-                    <div id="exportResults" style="margin-top: 1rem;"></div>
+                    <div class="analytics-card">
+                        <h5>Active Users (7 days)</h5>
+                        <div class="metric" id="activeUsers">0</div>
+                    </div>
+                    <div class="analytics-card">
+                        <h5>Messages Sent</h5>
+                        <div class="metric" id="totalMessages">0</div>
+                    </div>
+                    <div class="analytics-card">
+                        <h5>PDF Downloads</h5>
+                        <div class="metric" id="pdfDownloads">0</div>
+                    </div>
+                </div>
+
+                <div class="user-analytics-chart">
+                    <canvas id="userActivityChart"></canvas>
+                </div>
+
+                <div class="analytics-table-container">
+                    <h4>Recent User Activity</h4>
+                    <table class="analytics-table" id="userActivityTable">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Last Activity</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="userActivityBody">
+                            <tr>
+                                <td colspan="3">Loading user activity...</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
@@ -1664,14 +1665,49 @@
                 <h3>Debug & Troubleshooting</h3>
 
     <script>
-        let currentCompany = '';
+        // Company-specific variables removed
         let companyInfo = null;
         let editingHospitalId = null;
         let clinicalTrials = []; // Store clinical trials data for assignment dropdown
 
         // Initialize dashboard
         window.onload = async function() {
-            console.log('🚀 Page loaded, checking dropdown elements...');
+            console.log('🚀 Page loaded, checking authentication...');
+
+            // 🔐 AUTHENTICATION CHECK - Redirect to login if not authenticated
+            const token = localStorage.getItem('token');
+            if (!token) {
+                console.log('🔒 No authentication token found, redirecting to login...');
+                window.location.href = '/index.html';
+                return;
+            }
+
+            // Verify token is still valid
+            try {
+                const response = await fetch(`${window.API_BASE_URL}/api/auth/verify`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    console.log('🔒 Token invalid or expired, redirecting to login...');
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    window.location.href = '/index.html';
+                    return;
+                }
+
+                console.log('✅ Authentication verified, proceeding with dashboard load...');
+            } catch (error) {
+                console.log('🔒 Authentication check failed, redirecting to login...', error);
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = '/index.html';
+                return;
+            }
+
+            console.log('🚀 Continuing with dashboard initialization...');
 
             // Check if dropdown elements exist
             const dropdowns = ['newsClinicalTrial', 'trainingClinicalTrial', 'protocolClinicalTrial'];
@@ -1680,28 +1716,7 @@
                 console.log(`🔍 Dropdown ${id} exists:`, el ? 'YES' : 'NO');
             });
 
-            const urlParams = new URLSearchParams(window.location.search);
-            currentCompany = urlParams.get('company');
-
-            if (!currentCompany) {
-                // Default to cerevasc if no company specified
-                currentCompany = 'cerevasc';
-            }
-
-            // Load company info from localStorage or set defaults
-            const stored = localStorage.getItem('companyInfo');
-            if (stored) {
-                companyInfo = JSON.parse(stored);
-            } else {
-                companyInfo = {
-                    name: currentCompany === 'cerevasc' ? 'CereVasc' : 'Medtronic',
-                    logoUrl: currentCompany === 'cerevasc' 
-                        ? 'http://localhost:3000/logos/cerevasc-logo.png'
-                        : 'http://localhost:3000/logos/medtronic-logo.svg'
-                };
-                // Store for future use
-                localStorage.setItem('companyInfo', JSON.stringify(companyInfo));
-            }
+            // Company-specific logic removed - now using unified API endpoints
             
             // Set static dashboard title
             const dashboardTitle = document.querySelector('.dashboard-title');
@@ -1762,6 +1777,8 @@
             } else if (index === 5) {
                 loadStudyProtocols(); // Study Protocol tab
             } else if (index === 6) {
+                loadAnalytics(); // Analytics tab
+            } else if (index === 7) {
                 loadMessages(); // Messaging tab
             }
         }
@@ -1892,7 +1909,7 @@
                     loadUsers(),
                     loadNewsItems(),
                     loadLeaderboard(),
-                    loadDocuments()
+                    loadStudyProtocols()
                 ]);
             } catch (error) {
                 console.error('❌ Error loading dashboard data:', error);
@@ -2306,6 +2323,10 @@
         }
 
         async function approveUser(userId) {
+            // Company-specific endpoint removed - user approval functionality disabled
+            alert('User approval functionality is currently disabled');
+            return;
+            /*
             try {
                 const response = await fetch(`${window.API_BASE_URL}/api/company/${currentCompany}/users/${userId}/approve`, {
                     method: 'POST',
@@ -2337,9 +2358,14 @@
                 console.error('Failed to approve user:', error);
                 alert('Failed to approve user. Please try again.');
             }
+            */
         }
 
         async function revokeAccess(userId) {
+            // Company-specific endpoint removed - user revocation functionality disabled
+            alert('User revocation functionality is currently disabled');
+            return;
+            /*
             if (!confirm('Are you sure you want to revoke this user\'s access? They will no longer be able to use the mobile app.')) {
                 return;
             }
@@ -2369,6 +2395,7 @@
                 console.error('Failed to revoke access:', error);
                 alert('Failed to revoke user access. Please try again.');
             }
+            */
         }
 
         // User Management Functions
@@ -2816,7 +2843,7 @@
                     formData.append('file', file);
 
                     const token = localStorage.getItem('token');
-                    const response = await fetch(`${window.API_BASE_URL}/api/company/${currentCompany}/documents`, {
+                    const response = await fetch(`${window.API_BASE_URL}/api/study-protocols`, {
                         method: 'POST',
                         headers: {
                             'Authorization': token ? `Bearer ${token}` : ''
@@ -2830,7 +2857,7 @@
                         showAlert('newsAlert', `${documentType.toUpperCase()} document added successfully!`, 'success');
                         // Clear form
                         cancelDocumentEdit();
-                        loadDocuments();
+                        loadStudyProtocols();
                     } else {
                         showAlert('newsAlert', data.error || `Failed to add ${documentType} document`, 'error');
                     }
@@ -2932,10 +2959,10 @@
             }
         }
 
-        // PDF Management Functions
-        async function loadDocuments() {
+        // Study Protocol Management Functions
+        async function loadStudyProtocols() {
             try {
-                const response = await fetch(`${window.API_BASE_URL}/api/company/${currentCompany}/documents`);
+                const response = await fetch(`${window.API_BASE_URL}/api/study-protocols`);
                 const data = await response.json();
 
                 if (response.ok) {
@@ -2987,13 +3014,13 @@
             if (!confirm(`Are you sure you want to delete this ${type} document?`)) return;
 
             try {
-                const response = await fetch(`${window.API_BASE_URL}/api/company/${currentCompany}/documents/${docId}`, {
+                const response = await fetch(`${window.API_BASE_URL}/api/study-protocols/${docId}`, {
                     method: 'DELETE'
                 });
 
                 if (response.ok) {
                     showAlert('newsAlert', `${type.toUpperCase()} document deleted successfully!`, 'success');
-                    loadDocuments();
+                    loadStudyProtocols();
                 } else {
                     showAlert('newsAlert', `Failed to delete ${type} document`, 'error');
                 }
@@ -3010,7 +3037,7 @@
 
         async function loadPDFDocuments() {
             try {
-                const response = await fetch(`${window.API_BASE_URL}/api/company/${currentCompany}/pdfs`);
+                const response = await fetch(`${window.API_BASE_URL}/api/pdfs`);
                 const data = await response.json();
                 
                 if (response.ok) {
@@ -3054,7 +3081,7 @@
             if (!confirm('Are you sure you want to delete this PDF document?')) return;
 
             try {
-                const response = await fetch(`${window.API_BASE_URL}/api/company/${currentCompany}/pdfs/${pdfId}`, {
+                const response = await fetch(`${window.API_BASE_URL}/api/pdfs/${pdfId}`, {
                     method: 'DELETE'
                 });
                 
@@ -3084,7 +3111,7 @@
             document.getElementById('pdfModalTitle').textContent = `Viewing: ${title}`;
             
             // Create PDF viewer URL - using Google Docs viewer as a fallback
-            const pdfUrl = `${window.API_BASE_URL}/api/company/${currentCompany}/pdfs/${pdfId}/file`;
+            const pdfUrl = `${window.API_BASE_URL}/api/pdfs/${pdfId}/file`;
             const googleDocsUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(pdfUrl)}&embedded=true`;
             
             // Try to load the PDF directly first, fallback to Google Docs viewer
@@ -3109,7 +3136,7 @@
 
         async function downloadPDF(pdfId, filename) {
             try {
-                const response = await fetch(`${window.API_BASE_URL}/api/company/${currentCompany}/pdfs/${pdfId}/file`);
+                const response = await fetch(`${window.API_BASE_URL}/api/pdfs/${pdfId}/file`);
                 
                 if (response.ok) {
                     const blob = await response.blob();
@@ -3306,7 +3333,8 @@
         }
 
         async function saveHospital() {
-            if (!currentCompany) {
+            // Company checking disabled
+            // if (!currentCompany) {
                 showAlert('leaderboardAlert', 'Error: No company selected', 'error');
                 return;
             }
@@ -3429,7 +3457,7 @@ Company Info: ${JSON.stringify(companyInfo, null, 2)}
             // Update company debug info
             const companyDebug = document.getElementById('companyDebugInfo');
             companyDebug.textContent = `
-Current Company: ${currentCompany}
+Current Company: [Company references removed]
 Company Info: ${JSON.stringify(companyInfo, null, 2)}
 LocalStorage: ${localStorage.getItem('companyInfo')}
             `;
@@ -3444,7 +3472,8 @@ LocalStorage: ${localStorage.getItem('companyInfo')}
                 const healthData = await healthResponse.json();
                 
                 // Test specific logo
-                const logoResponse = await fetch(`http://localhost:3000/test-logo/${currentCompany}-logo.png`);
+                // Logo testing disabled - company references removed
+                // const logoResponse = await fetch(`http://localhost:3000/test-logo/${currentCompany}-logo.png`);
                 const logoExists = logoResponse.ok;
                 
                 const resultText = `
@@ -3477,17 +3506,16 @@ LocalStorage: ${localStorage.getItem('companyInfo')}
                 const healthResponse = await fetch('${window.API_BASE_URL}/health');
                 const healthData = await healthResponse.json();
                 
-                // Test company-specific endpoints
-                const dashboardResponse = await fetch(`${window.API_BASE_URL}/api/company/${currentCompany}/dashboard`);
-                const dashboardOk = dashboardResponse.ok;
-                
-                const hospitalsResponse = await fetch(`${window.API_BASE_URL}/api/company/${currentCompany}/hospitals`);
-                const hospitalsOk = hospitalsResponse.ok;
+                // Test company-specific endpoints - disabled
+                // const dashboardResponse = await fetch(`${window.API_BASE_URL}/api/company/${currentCompany}/dashboard`);
+                // const dashboardOk = dashboardResponse.ok;
+
+                // const hospitalsResponse = await fetch(`${window.API_BASE_URL}/api/company/${currentCompany}/hospitals`);
+                // const hospitalsOk = hospitalsResponse.ok;
                 
                 results.textContent = `
 🏥 Server Health: ${healthResponse.ok ? '✅ OK' : '❌ Failed'}
-📊 Dashboard API: ${dashboardOk ? '✅ OK' : '❌ Failed'}
-🏥 Hospitals API: ${hospitalsOk ? '✅ OK' : '❌ Failed'}
+📊 Company APIs: Disabled (company references removed)
 🔧 Server Info: ${JSON.stringify(healthData, null, 2)}
                 `;
             } catch (error) {
@@ -3499,15 +3527,11 @@ LocalStorage: ${localStorage.getItem('companyInfo')}
             const results = document.getElementById('apiTestResults');
             
             try {
-                // Test GET hospitals
-                const getResponse = await fetch(`${window.API_BASE_URL}/api/company/${currentCompany}/hospitals`);
-                const getOk = getResponse.ok;
+                // Test GET hospitals - disabled
+                // const getResponse = await fetch(`${window.API_BASE_URL}/api/company/${currentCompany}/hospitals`);
+                // const getOk = getResponse.ok;
+                const getOk = false;
                 let getCount = 0;
-                
-                if (getOk) {
-                    const getData = await getResponse.json();
-                    getCount = getData.hospitals?.length || 0;
-                }
                 
                 // Test POST with dummy data
                 const testHospital = {
