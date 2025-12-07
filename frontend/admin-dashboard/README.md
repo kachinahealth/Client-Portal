@@ -40,7 +40,6 @@ admin-dashboard/
 ├── public/
 │   ├── clienthome.html           # Complete dashboard with all tabs
 │   ├── logos/                    # Company logos and assets
-│   └── docs/screenshots/         # Documentation images
 ├── package.json                  # Next.js dependencies
 ├── next.config.js               # Next.js configuration
 ├── tsconfig.json                # TypeScript configuration

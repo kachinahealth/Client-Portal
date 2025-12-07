@@ -72,32 +72,7 @@
             gap: 1rem;                        /* space between logout and logo */
         }
         
-        .company-logo {
-            width: 280px;                     /* match KachinaHealth logo width */
-            height: 80px;                     /* match KachinaHealth logo height */
-            margin-left: 1rem;
-            border-radius: 4px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            object-fit: contain;
-            background: white;
-            padding: 4px;
-            border: 1px solid #e0e0e0;
-        }
-        
-        .fallback-logo {
-            width: 120px;
-            height: 40px;
-            margin-left: 1rem;
-            border-radius: 4px;
-            background: linear-gradient(135deg, #1976d2, #42a5f5);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 14px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
+        /* Logo styles removed */
         
         .company-header {
             display: flex;
@@ -723,6 +698,232 @@
             font-weight: 500;
         }
 
+        /* Messaging Styles */
+        .messaging-container {
+            display: flex;
+            height: calc(100vh - 200px);
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .messaging-sidebar {
+            width: 300px;
+            background: #f8f9fa;
+            border-right: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .messaging-header {
+            padding: 1rem;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .messaging-header h4 {
+            margin: 0;
+            color: #333;
+        }
+
+        .conversations-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .conversation-item {
+            padding: 1rem;
+            border-bottom: 1px solid #e0e0e0;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .conversation-item:hover {
+            background: #e9ecef;
+        }
+
+        .conversation-item.active {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+        }
+
+        .conversation-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.25rem;
+        }
+
+        .conversation-preview {
+            font-size: 0.875rem;
+            color: #666;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .conversation-time {
+            font-size: 0.75rem;
+            color: #999;
+            margin-top: 0.25rem;
+        }
+
+        .messaging-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: white;
+        }
+
+        .message-thread {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .no-conversation {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #666;
+            text-align: center;
+        }
+
+        .no-conversation-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .message {
+            display: flex;
+            margin-bottom: 1rem;
+            max-width: 70%;
+        }
+
+        .message.sent {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #666;
+            margin: 0 0.5rem;
+        }
+
+        .message-content {
+            background: #f8f9fa;
+            padding: 0.75rem 1rem;
+            border-radius: 18px;
+            position: relative;
+        }
+
+        .message.sent .message-content {
+            background: #2196f3;
+            color: white;
+        }
+
+        .message-text {
+            margin: 0;
+            word-wrap: break-word;
+        }
+
+        .message-time {
+            font-size: 0.75rem;
+            color: #999;
+            margin-top: 0.25rem;
+        }
+
+        .message.sent .message-time {
+            color: rgba(255, 255, 255, 0.7);
+            text-align: right;
+        }
+
+        .message-compose {
+            border-top: 1px solid #e0e0e0;
+            background: white;
+            display: none;
+        }
+
+        .compose-header {
+            padding: 1rem;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8f9fa;
+        }
+
+        .compose-body {
+            padding: 1rem;
+        }
+
+        .compose-body textarea {
+            width: 100%;
+            min-height: 80px;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            resize: vertical;
+            font-family: inherit;
+            margin-bottom: 1rem;
+        }
+
+        .compose-actions {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+        }
+
+        .new-message-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .new-message-modal {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            width: 400px;
+            max-width: 90vw;
+        }
+
+        .new-message-modal h3 {
+            margin-top: 0;
+            margin-bottom: 1rem;
+        }
+
+        .new-message-modal input,
+        .new-message-modal textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+
         .status-approved {
             background-color: #28a745;
             color: white;
@@ -825,7 +1026,6 @@
 
         <div class="company-info">
             <button onclick="logout()" class="logout-button">Logout</button>
-            <img id="companyLogo" src="logos/cerevasc-logo.png" alt="CereVasc Logo" class="company-logo">
         </div>
     </div>
 
@@ -858,7 +1058,8 @@
                 <button class="tab-button" onclick="showTab(4)">Training Materials</button>
                 <button class="tab-button" onclick="showTab(5)">Study Protocol</button>
                 <button class="tab-button" onclick="showTab(6)">Analytics</button>
-                <button class="tab-button" onclick="showTab(7)">Settings</button>
+                <button class="tab-button" onclick="showTab(7)">Messaging</button>
+                <button class="tab-button" onclick="showTab(8)">Settings</button>
             </div>
 
             <div class="tab-content active" id="tab0">
@@ -1418,8 +1619,49 @@
                     <div id="exportResults" style="margin-top: 1rem;"></div>
                 </div>
             </div>
-        </div>
-    </div>
+
+            <div class="tab-content" id="tab7">
+                <h3>Messaging</h3>
+
+                <div class="messaging-container">
+                    <div class="messaging-sidebar">
+                        <div class="messaging-header">
+                            <h4>Conversations</h4>
+                            <button class="btn-primary" onclick="composeNewMessage()">New Message</button>
+                        </div>
+                        <div class="conversations-list" id="conversationsList">
+                            <div class="loading">Loading conversations...</div>
+                        </div>
+                    </div>
+
+                    <div class="messaging-main">
+                        <div class="message-thread" id="messageThread">
+                            <div class="no-conversation">
+                                <div class="no-conversation-icon">💬</div>
+                                <h4>Select a conversation</h4>
+                                <p>Choose a conversation from the sidebar to view messages</p>
+                            </div>
+                        </div>
+
+                        <div class="message-compose" id="messageCompose">
+                            <div class="compose-header">
+                                <span id="composeRecipient">Select recipient</span>
+                                <button onclick="cancelCompose()">✕</button>
+                            </div>
+                            <div class="compose-body">
+                                <textarea id="messageInput" placeholder="Type your message..."></textarea>
+                                <div class="compose-actions">
+                                    <button onclick="sendMessage()" class="btn-primary">Send Message</button>
+                                    <button onclick="cancelCompose()">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="tab8">
+                <h3>Debug & Troubleshooting</h3>
 
     <script>
         let currentCompany = '';
@@ -1461,59 +1703,13 @@
                 localStorage.setItem('companyInfo', JSON.stringify(companyInfo));
             }
             
-            // Update dashboard title with company name
+            // Set static dashboard title
             const dashboardTitle = document.querySelector('.dashboard-title');
             if (dashboardTitle) {
-                dashboardTitle.textContent = `${companyInfo.name} App Dashboard`;
+                dashboardTitle.textContent = 'App Dashboard';
             }
 
-            // Load logo with enhanced error handling
-            const logoImg = document.getElementById('companyLogo');
-            const fallbackLogo = document.getElementById('fallbackLogo');
-            
-            // Set a timeout for slow loading
-            const logoTimeout = setTimeout(() => {
-                logoImg.style.display = 'none';
-                fallbackLogo.textContent = companyInfo.name;
-                fallbackLogo.style.display = 'flex';
-            }, 5000);
-            
-               logoImg.onload = function() {
-                   clearTimeout(logoTimeout);
-                logoImg.style.display = 'inline-block';
-                fallbackLogo.style.display = 'none';
-            };
-            
-            logoImg.onerror = function() {
-                console.error('❌ Failed to load logo:', companyInfo.logoUrl);
-                clearTimeout(logoTimeout);
-                
-                // Try alternative paths
-                if (companyInfo.logoUrl.includes('.svg')) {
-                    console.log('🔄 Trying PNG version...');
-                    const pngUrl = companyInfo.logoUrl.replace('.svg', '.png');
-                    logoImg.src = pngUrl;
-                    return;
-                }
-                
-                if (!companyInfo.logoUrl.includes('localhost')) {
-                    console.log('🔄 Trying localhost...');
-                    logoImg.src = `http://localhost:3000/logos/${currentCompany}-logo.png`;
-                    return;
-                }
-                
-                console.log('🔄 Trying relative path...');
-                logoImg.src = `./logos/${currentCompany}-logo.png`;
-                
-                // Final fallback
-                setTimeout(() => {
-                    logoImg.style.display = 'none';
-                    fallbackLogo.textContent = companyInfo.name;
-                    fallbackLogo.style.display = 'flex';
-                }, 2000);
-            };
-            
-            logoImg.src = companyInfo.logoUrl;
+            // Logo functionality removed
 
             // Fetch user profile and initialize tabs based on role
             const userProfile = await fetchUserProfile();
@@ -1565,6 +1761,8 @@
                 loadTrainingMaterials(); // Training Materials tab
             } else if (index === 5) {
                 loadStudyProtocols(); // Study Protocol tab
+            } else if (index === 6) {
+                loadMessages(); // Messaging tab
             }
         }
 
@@ -3222,14 +3420,9 @@
 
         // Debug Functions
         function updateDebugInfo() {
-            // Update logo debug info
+            // Update debug info (logo removed)
             const logoDebug = document.getElementById('logoDebugInfo');
-            const logoImg = document.getElementById('companyLogo');
             logoDebug.textContent = `
-Logo Source: ${logoImg.src}
-Logo Display: ${logoImg.style.display}
-Logo Natural Width: ${logoImg.naturalWidth}
-Logo Natural Height: ${logoImg.naturalHeight}
 Company Info: ${JSON.stringify(companyInfo, null, 2)}
             `;
 
@@ -4594,6 +4787,207 @@ ${endpointStatus.join('\n')}
 
         // Load analytics when tab is shown
         document.querySelector('.tab-button[onclick="showTab(5)"]').addEventListener('click', loadAnalytics);
+
+        // Messaging Functions
+        let currentConversation = null;
+        let conversations = [];
+        let messages = [];
+
+        async function loadMessages() {
+            try {
+                // Load conversations (users who have sent/received messages)
+                const conversationsResponse = await fetch(`${window.API_BASE_URL}/api/messages/conversations`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (conversationsResponse.ok) {
+                    conversations = await conversationsResponse.json();
+                    renderConversations();
+                } else {
+                    console.error('Failed to load conversations');
+                    document.getElementById('conversationsList').innerHTML = '<div class="error">Failed to load conversations</div>';
+                }
+            } catch (error) {
+                console.error('Error loading messages:', error);
+                document.getElementById('conversationsList').innerHTML = '<div class="error">Error loading conversations</div>';
+            }
+        }
+
+        function renderConversations() {
+            const conversationsList = document.getElementById('conversationsList');
+
+            if (conversations.length === 0) {
+                conversationsList.innerHTML = '<div class="no-conversations">No conversations yet</div>';
+                return;
+            }
+
+            conversationsList.innerHTML = conversations.map(conv => `
+                <div class="conversation-item ${currentConversation && currentConversation.id === conv.id ? 'active' : ''}"
+                     onclick="selectConversation('${conv.id}', '${conv.name}', '${conv.lastMessage || ''}')">
+                    <div class="conversation-name">${conv.name}</div>
+                    <div class="conversation-preview">${conv.lastMessage || 'No messages yet'}</div>
+                    <div class="conversation-time">${conv.lastMessageTime ? new Date(conv.lastMessageTime).toLocaleDateString() : ''}</div>
+                </div>
+            `).join('');
+        }
+
+        function selectConversation(conversationId, name, lastMessage) {
+            currentConversation = { id: conversationId, name: name };
+            loadConversationMessages(conversationId);
+        }
+
+        async function loadConversationMessages(conversationId) {
+            try {
+                const response = await fetch(`${window.API_BASE_URL}/api/messages/${conversationId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (response.ok) {
+                    messages = await response.json();
+                    renderMessages();
+                } else {
+                    console.error('Failed to load messages');
+                }
+            } catch (error) {
+                console.error('Error loading conversation messages:', error);
+            }
+        }
+
+        function renderMessages() {
+            const messageThread = document.getElementById('messageThread');
+
+            if (messages.length === 0) {
+                messageThread.innerHTML = `
+                    <div class="no-conversation">
+                        <div class="no-conversation-icon">💬</div>
+                        <h4>${currentConversation.name}</h4>
+                        <p>No messages in this conversation yet</p>
+                        <button class="btn-primary" onclick="composeMessage('${currentConversation.id}', '${currentConversation.name}')">Send First Message</button>
+                    </div>
+                `;
+                return;
+            }
+
+            messageThread.innerHTML = messages.map(msg => `
+                <div class="message ${msg.sender_id === localStorage.getItem('user') ? 'sent' : 'received'}">
+                    <div class="message-avatar">${msg.sender_id.charAt(0).toUpperCase()}</div>
+                    <div class="message-content">
+                        <p class="message-text">${msg.content}</p>
+                        <div class="message-time">${new Date(msg.created_at).toLocaleString()}</div>
+                    </div>
+                </div>
+            `).join('');
+
+            // Scroll to bottom
+            messageThread.scrollTop = messageThread.scrollHeight;
+        }
+
+        function composeNewMessage() {
+            // Show recipient selection modal
+            const modal = document.createElement('div');
+            modal.className = 'new-message-overlay';
+            modal.innerHTML = `
+                <div class="new-message-modal">
+                    <h3>New Message</h3>
+                    <select id="recipientSelect" style="width: 100%; padding: 0.75rem; margin-bottom: 1rem; border: 1px solid #ddd; border-radius: 4px;">
+                        <option value="">Select recipient...</option>
+                        ${conversations.map(conv => `<option value="${conv.id}">${conv.name}</option>`).join('')}
+                    </select>
+                    <textarea id="newMessageText" placeholder="Type your message..." rows="4" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 1rem;"></textarea>
+                    <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                        <button onclick="this.closest('.new-message-overlay').remove()">Cancel</button>
+                        <button class="btn-primary" onclick="sendNewMessage()">Send</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        async function sendNewMessage() {
+            const recipientId = document.getElementById('recipientSelect').value;
+            const messageText = document.getElementById('newMessageText').value.trim();
+
+            if (!recipientId || !messageText) {
+                alert('Please select a recipient and enter a message');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${window.API_BASE_URL}/api/messages`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({
+                        recipient_id: recipientId,
+                        message: messageText
+                    })
+                });
+
+                if (response.ok) {
+                    // Close modal and refresh
+                    document.querySelector('.new-message-overlay').remove();
+                    loadMessages();
+                } else {
+                    alert('Failed to send message');
+                }
+            } catch (error) {
+                console.error('Error sending message:', error);
+                alert('Error sending message');
+            }
+        }
+
+        function composeMessage(conversationId, recipientName) {
+            document.getElementById('composeRecipient').textContent = `To: ${recipientName}`;
+            document.getElementById('messageCompose').style.display = 'block';
+            document.getElementById('messageThread').style.display = 'none';
+            document.getElementById('messageInput').focus();
+        }
+
+        function cancelCompose() {
+            document.getElementById('messageCompose').style.display = 'none';
+            document.getElementById('messageThread').style.display = 'flex';
+            document.getElementById('messageInput').value = '';
+        }
+
+        async function sendMessage() {
+            const messageText = document.getElementById('messageInput').value.trim();
+
+            if (!messageText || !currentConversation) {
+                alert('Please enter a message');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${window.API_BASE_URL}/api/messages`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({
+                        recipient_id: currentConversation.id,
+                        message: messageText
+                    })
+                });
+
+                if (response.ok) {
+                    document.getElementById('messageInput').value = '';
+                    loadConversationMessages(currentConversation.id);
+                    loadMessages(); // Refresh conversations list
+                } else {
+                    alert('Failed to send message');
+                }
+            } catch (error) {
+                console.error('Error sending message:', error);
+                alert('Error sending message');
+            }
+        }
     </script>
 </body>
 </html>

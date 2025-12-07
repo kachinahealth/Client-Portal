@@ -4373,6 +4373,143 @@ app.use((error, req, res, next) => {
   });
 });
 
+// Messaging Routes
+// Get conversations for the current user
+app.get('/api/messages/conversations', authenticateToken, async (req, res) => {
+  try {
+    // Get all users that have exchanged messages with the current user
+    const { data: sentMessages, error: sentError } = await supabase
+      .from('messages')
+      .select('recipient_id, content, created_at')
+      .eq('sender_id', req.user.userId);
+
+    const { data: receivedMessages, error: receivedError } = await supabase
+      .from('messages')
+      .select('sender_id, content, created_at')
+      .eq('recipient_id', req.user.userId);
+
+    if (sentError || receivedError) {
+      return res.status(500).json({ error: 'Failed to load conversations' });
+    }
+
+    // Get user names for conversation partners
+    const userIds = new Set();
+    receivedMessages.forEach(msg => userIds.add(msg.sender_id));
+    sentMessages.forEach(msg => userIds.add(msg.recipient_id));
+
+    const { data: userProfiles, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, display_name')
+      .in('id', Array.from(userIds));
+
+    if (profilesError) {
+      return res.status(500).json({ error: 'Failed to load user profiles' });
+    }
+
+    const userMap = new Map(userProfiles.map(profile => [profile.id, profile.display_name]));
+
+    // Combine and deduplicate conversation partners
+    const conversationsMap = new Map();
+
+    // Add senders
+    receivedMessages.forEach(msg => {
+      if (!conversationsMap.has(msg.sender_id)) {
+        conversationsMap.set(msg.sender_id, {
+          id: msg.sender_id,
+          name: userMap.get(msg.sender_id) || 'Unknown User',
+          lastMessage: msg.content,
+          lastMessageTime: msg.created_at
+        });
+      }
+    });
+
+    // Add recipients and update last message if more recent
+    sentMessages.forEach(msg => {
+      if (!conversationsMap.has(msg.recipient_id)) {
+        conversationsMap.set(msg.recipient_id, {
+          id: msg.recipient_id,
+          name: userMap.get(msg.recipient_id) || 'Unknown User',
+          lastMessage: msg.content,
+          lastMessageTime: msg.created_at
+        });
+      } else {
+        // Update last message if this is more recent
+        const existing = conversationsMap.get(msg.recipient_id);
+        if (new Date(msg.created_at) > new Date(existing.lastMessageTime)) {
+          existing.lastMessage = msg.content;
+          existing.lastMessageTime = msg.created_at;
+        }
+      }
+    });
+
+    const conversations = Array.from(conversationsMap.values());
+    res.json(conversations);
+
+  } catch (error) {
+    console.error('Error loading conversations:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get messages for a specific conversation
+app.get('/api/messages/:conversationId', authenticateToken, async (req, res) => {
+  try {
+    const { conversationId } = req.params;
+
+    // Get all messages between current user and conversation partner
+    const { data: messages, error } = await supabase
+      .from('messages')
+      .select('*')
+      .or(`and(sender_id.eq.${req.user.userId},recipient_id.eq.${conversationId}),and(sender_id.eq.${conversationId},recipient_id.eq.${req.user.userId})`)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('Error loading messages:', error);
+      return res.status(500).json({ error: 'Failed to load messages' });
+    }
+
+    res.json(messages);
+
+  } catch (error) {
+    console.error('Error loading conversation messages:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Send a new message
+app.post('/api/messages', authenticateToken, async (req, res) => {
+  try {
+    const { recipient_id, message } = req.body;
+
+    if (!recipient_id || !message) {
+      return res.status(400).json({ error: 'Recipient ID and message are required' });
+    }
+
+    // Insert the message
+    const { data, error } = await supabase
+      .from('messages')
+      .insert([{
+        sender_id: req.user.userId,
+        recipient_id: recipient_id,
+        content: message.trim(),
+        message_type: 'text'
+      }])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error sending message:', error);
+      return res.status(500).json({ error: 'Failed to send message' });
+    }
+
+    res.json({ success: true, message: data });
+
+  } catch (error) {
+    console.error('Error sending message:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({

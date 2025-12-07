@@ -9,13 +9,6 @@ A comprehensive client management portal with Supabase authentication and a rich
 - npm or yarn
 - Supabase account with project set up
 
-### 1. Database Setup (One-time setup)
-Run the SQL commands in `database/setup/complete-database-setup.sql` in your Supabase SQL editor to create all tables and policies.
-*Skip this step if your database is already set up.*
-
-### 2. Environment Configuration
-**Note: A `.env` file already exists in the `backend/` directory with database credentials configured. The application will automatically use this existing configuration.**
-
 The existing `.env` file contains:
 - Supabase project URL and API keys
 - JWT secret for authentication
@@ -270,18 +263,5 @@ npm run dev
 - [Next.js Documentation](https://nextjs.org/docs)
 - [Express.js Documentation](https://expressjs.com/)
 - [Material-UI Documentation](https://mui.com/)
-
----
-
-## 🎯 What's Been Cleaned Up
-
-This codebase has been thoroughly cleaned and optimized:
-
-- ✅ **Removed duplicate files** (old dashboard routes, unused components)
-- ✅ **Cleaned console logs** (production-ready, minimal logging)
-- ✅ **Optimized dependencies** (removed unused packages)
-- ✅ **Unified architecture** (single dashboard HTML with full functionality)
-- ✅ **Updated API endpoints** (consistent authentication across all routes)
-- ✅ **Production-ready code** (error handling, security, performance)
 
 **Ready for production deployment!** 🚀
