@@ -2822,207 +2822,8 @@
         }
 
 
-        async function saveDocument() {
-            const documentType = document.getElementById('documentType').value;
-            const title = document.getElementById('documentTitle').value;
 
-            if (!title) {
-                showAlert('newsAlert', 'Please enter a title', 'error');
-                return;
-            }
 
-            try {
-                if (documentType === 'news') {
-                    // Handle news items
-                    const content = document.getElementById('newsContent').value;
-
-                    if (!content) {
-                        showAlert('newsAlert', 'Please enter news content', 'error');
-                        return;
-                    }
-
-                    const clinical_trial_id = document.getElementById('newsClinicalTrial').value;
-
-                    if (!clinical_trial_id) {
-                        showAlert('newsAlert', 'Please select a clinical trial', 'error');
-                        return;
-                    }
-
-                    const token = localStorage.getItem('token');
-                    const isEditing = editingNewsId !== null;
-                    const url = isEditing
-                        ? `${window.API_BASE_URL}/api/news/${editingNewsId}`
-                        : `${window.API_BASE_URL}/api/news`;
-                    const method = isEditing ? 'PUT' : 'POST';
-
-                    console.log(`📤 ${method} ${url} - Editing: ${isEditing}, NewsId: ${editingNewsId}`);
-
-                    const response = await fetch(url, {
-                        method: method,
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': token ? `Bearer ${token}` : ''
-                        },
-                        body: JSON.stringify({
-                            title,
-                            content: content,
-                            clinical_trial_id: clinical_trial_id
-                        })
-                    });
-
-                    const data = await response.json();
-                    console.log('📥 Response:', response.status, data);
-
-                    if (response.ok && data.success) {
-                        showAlert('newsAlert', `News ${isEditing ? 'updated' : 'added'} successfully!`, 'success');
-                        cancelDocumentEdit();
-                        loadNewsItems();
-                    } else {
-                        showAlert('newsAlert', data.message || `Failed to ${isEditing ? 'update' : 'add'} news`, 'error');
-                    }
-                } else {
-                    // Handle document uploads (PDF/Text)
-                    const description = document.getElementById('documentDescription').value;
-                    const category = document.getElementById('documentCategory').value;
-                    const fileInput = document.getElementById('documentFile');
-
-                    if (!description || !fileInput.files[0]) {
-                        showAlert('newsAlert', 'Please fill in all fields and select a file', 'error');
-                        return;
-                    }
-
-                    // Validate file type
-                    const allowedTypes = ['application/pdf', 'text/plain', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/rtf'];
-                    const file = fileInput.files[0];
-
-                    if (!allowedTypes.includes(file.type) && !file.name.match(/\.(pdf|txt|doc|docx|rtf)$/i)) {
-                        showAlert('newsAlert', 'Please select a valid file (PDF, TXT, DOC, DOCX, or RTF)', 'error');
-                        return;
-                    }
-
-                    // Create FormData for file upload
-                    const formData = new FormData();
-                    formData.append('title', title);
-                    formData.append('description', description);
-                    formData.append('category', category || 'General');
-                    formData.append('file', file);
-
-                    const token = localStorage.getItem('token');
-                    const response = await fetch(`${window.API_BASE_URL}/api/study-protocols`, {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': token ? `Bearer ${token}` : ''
-                        },
-                        body: formData
-                    });
-
-                    const data = await response.json();
-
-                    if (response.ok) {
-                        showAlert('newsAlert', `${documentType.toUpperCase()} document added successfully!`, 'success');
-                        // Clear form
-                        cancelDocumentEdit();
-                        loadStudyProtocols();
-                    } else {
-                        showAlert('newsAlert', data.error || `Failed to add ${documentType} document`, 'error');
-                    }
-                }
-            } catch (error) {
-                showAlert('newsAlert', 'Error adding document', 'error');
-                console.error('Error:', error);
-            }
-        }
-
-        async function editNews(newsId, title, content, clinicalTrialId) {
-            console.log('🖊️ Editing news item:', newsId, title);
-
-            // Set editing mode
-            editingNewsId = newsId;
-
-            // Make sure we're on the News & Updates tab
-            showTab(1);
-
-            // Set document type to news
-            document.getElementById('documentType').value = 'news';
-            toggleDocumentForm();
-
-            // Update form title and button
-            document.getElementById('documentFormTitle').textContent = 'Edit News Item';
-            document.getElementById('documentSubmitBtn').textContent = 'Update News';
-            document.getElementById('documentCancelBtn').style.display = 'inline-block';
-
-            // Populate form with existing data
-            document.getElementById('documentTitle').value = title;
-            document.getElementById('newsContent').value = content;
-
-            // Wait for clinical trial selector to be populated, then set the value
-            setTimeout(async () => {
-                // Ensure clinical trial selector is populated
-                if (!clinicalTrials || clinicalTrials.length === 0) {
-                    await loadClinicalTrials();
-                }
-                await populateNewsClinicalTrialSelector();
-
-                // Now set the clinical trial value
-                const clinicalTrialElement = document.getElementById('newsClinicalTrial');
-                if (clinicalTrialElement) {
-                    clinicalTrialElement.value = clinicalTrialId;
-                    console.log('📝 Set clinical trial value to:', clinicalTrialId);
-                } else {
-                    console.error('❌ Could not find newsClinicalTrial element to set value');
-                }
-            }, 500);
-
-            console.log('📝 Form populated with:', { title, content });
-
-            // Scroll to form
-            setTimeout(() => {
-                document.getElementById('documentsSection').scrollIntoView({ behavior: 'smooth' });
-            }, 100);
-        }
-
-        function cancelDocumentEdit() {
-            // Reset editing state
-            editingNewsId = null;
-
-            // Reset form
-            document.getElementById('documentFormTitle').textContent = 'Add News/Update or Upload Document';
-            document.getElementById('documentSubmitBtn').textContent = 'Add Document';
-            document.getElementById('documentCancelBtn').style.display = 'none';
-
-            // Clear all form fields
-            document.getElementById('documentType').value = 'news';
-            document.getElementById('documentTitle').value = '';
-            document.getElementById('newsContent').value = '';
-            document.getElementById('documentDescription').value = '';
-            document.getElementById('documentCategory').value = '';
-            document.getElementById('documentFile').value = '';
-
-            // Reset form display
-            toggleDocumentForm();
-        }
-
-        async function deleteNews(newsId) {
-            if (!confirm('Are you sure you want to delete this news item?')) return;
-
-            try {
-                const response = await fetch(`${window.API_BASE_URL}/api/news/${newsId}`, {
-                    method: 'DELETE'
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    showAlert('newsAlert', 'News item deleted successfully!', 'success');
-                    loadNewsItems(); // Refresh news data
-                } else {
-                    showAlert('newsAlert', data.message || 'Failed to delete news item', 'error');
-                }
-            } catch (error) {
-                showAlert('newsAlert', 'Error deleting news item', 'error');
-                console.error('Error:', error);
-            }
-        }
 
         // Study Protocol Management Functions
         async function loadStudyProtocols() {
@@ -3329,57 +3130,6 @@
             }).join('');
         }
 
-        function editHospital(hospitalId) {
-            console.log('📝 Editing hospital:', hospitalId);
-            
-            // Find the table row with this hospital ID
-            const row = document.querySelector(`tr[data-hospital-id="${hospitalId}"]`);
-            if (!row) {
-                console.error('❌ Could not find hospital row');
-                return;
-            }
-            
-            // Extract data from the table cells
-            const cells = row.querySelectorAll('td');
-            const hospitalData = {
-                name: cells[1].textContent,
-                location: cells[2].textContent,
-                principalInvestigator: cells[3].textContent,
-                consentedPatients: parseInt(cells[4].textContent),
-                randomizedPatients: parseInt(cells[5].textContent),
-                consentRate: parseFloat(cells[6].textContent)
-            };
-            
-            console.log('📋 Hospital data:', hospitalData);
-            
-            // Populate the form
-            document.getElementById('hospitalName').value = hospitalData.name;
-            document.getElementById('hospitalLocation').value = hospitalData.location;
-            document.getElementById('principalInvestigator').value = hospitalData.principalInvestigator;
-            document.getElementById('consentedPatients').value = hospitalData.consentedPatients;
-            document.getElementById('randomizedPatients').value = hospitalData.randomizedPatients;
-            document.getElementById('consentRate').value = hospitalData.consentRate;
-            
-            // Update form state
-            editingHospitalId = hospitalId;
-            document.getElementById('hospitalFormTitle').textContent = 'Edit Hospital';
-            document.getElementById('saveHospitalBtn').textContent = 'Update Hospital';
-            document.getElementById('cancelEditBtn').style.display = 'inline-block';
-            
-            // Add visual feedback
-            document.querySelectorAll('.leaderboard-table tr').forEach(tr => {
-                if (tr.dataset.hospitalId === hospitalId) {
-                    tr.classList.add('editing-row');
-                } else {
-                    tr.classList.add('other-rows');
-                }
-            });
-            
-            // Scroll to form
-            document.querySelector('.news-form').scrollIntoView({ behavior: 'smooth' });
-            
-            console.log('✅ Edit mode activated');
-        }
 
         function cancelEdit() {
             // Clear form
@@ -3402,6 +3152,7 @@
             });
         }
 
+        // Hospital Functions
         async function saveHospital() {
             // Company checking disabled
             // if (!currentCompany) {
@@ -3417,7 +3168,7 @@
                 randomizedPatients: parseInt(document.getElementById('randomizedPatients').value) || 0,
                 consentRate: parseFloat(document.getElementById('consentRate').value) || 0
             };
-            
+
             if (!hospitalData.name || !hospitalData.location || !hospitalData.principalInvestigator) {
                 showAlert('leaderboardAlert', 'Please fill in all required fields', 'error');
                 return;
@@ -3448,23 +3199,23 @@
                         consentRate: hospitalData.consentRate
                     })
                 });
-                
+
                 let data;
                 try {
                     data = await response.json();
                 } catch (parseError) {
-                    
+
                     // Check if response is HTML (error page)
                     if (response.headers.get('content-type')?.includes('text/html')) {
                         console.error('❌ Server returned HTML instead of JSON - likely a 404 or server error');
                         showAlert('leaderboardAlert', 'Server endpoint not found. Please restart the server with updated code.', 'error');
                         return;
                     }
-                    
+
                     showAlert('leaderboardAlert', 'Invalid response from server', 'error');
                     return;
                 }
-                
+
                 if (response.ok && data.success) {
                     showAlert('leaderboardAlert', `Hospital ${isEditing ? 'updated' : 'added'} successfully!`, 'success');
 
@@ -3489,6 +3240,58 @@
                 console.error('❌ Network error:', error.message);
                 showAlert('leaderboardAlert', `Network error: ${error.message}`, 'error');
             }
+        }
+
+        function editHospital(hospitalId) {
+            console.log('📝 Editing hospital:', hospitalId);
+
+            // Find the table row with this hospital ID
+            const row = document.querySelector(`tr[data-hospital-id="${hospitalId}"]`);
+            if (!row) {
+                console.error('❌ Could not find hospital row');
+                return;
+            }
+
+            // Extract data from the table cells
+            const cells = row.querySelectorAll('td');
+            const hospitalData = {
+                name: cells[1].textContent,
+                location: cells[2].textContent,
+                principalInvestigator: cells[3].textContent,
+                consentedPatients: parseInt(cells[4].textContent),
+                randomizedPatients: parseInt(cells[5].textContent),
+                consentRate: parseFloat(cells[6].textContent)
+            };
+
+            console.log('📋 Hospital data:', hospitalData);
+
+            // Populate the form
+            document.getElementById('hospitalName').value = hospitalData.name;
+            document.getElementById('hospitalLocation').value = hospitalData.location;
+            document.getElementById('principalInvestigator').value = hospitalData.principalInvestigator;
+            document.getElementById('consentedPatients').value = hospitalData.consentedPatients;
+            document.getElementById('randomizedPatients').value = hospitalData.randomizedPatients;
+            document.getElementById('consentRate').value = hospitalData.consentRate;
+
+            // Update form state
+            editingHospitalId = hospitalId;
+            document.getElementById('hospitalFormTitle').textContent = 'Edit Hospital';
+            document.getElementById('saveHospitalBtn').textContent = 'Update Hospital';
+            document.getElementById('cancelEditBtn').style.display = 'inline-block';
+
+            // Add visual feedback
+            document.querySelectorAll('.leaderboard-table tr').forEach(tr => {
+                if (tr.dataset.hospitalId === hospitalId) {
+                    tr.classList.add('editing-row');
+                } else {
+                    tr.classList.add('other-rows');
+                }
+            });
+
+            // Scroll to form
+            document.querySelector('.news-form').scrollIntoView({ behavior: 'smooth' });
+
+            console.log('✅ Edit mode activated');
         }
 
         async function deleteHospital(hospitalId) {
@@ -3916,11 +3719,170 @@ ${endpointStatus.join('\n')}
             `).join('');
         }
 
+
+
+
+
+        // Study Protocol Functions
+
+        function toggleProtocolUploadOptions() {
+            const type = document.getElementById('protocolType').value;
+            const textSection = document.getElementById('protocolTextContentSection');
+            const fileSection = document.getElementById('protocolFileUploadSection');
+            
+            textSection.style.display = 'none';
+            fileSection.style.display = 'none';
+            
+            if (type === 'text') {
+                textSection.style.display = 'block';
+            } else if (type === 'pdf') {
+                fileSection.style.display = 'block';
+            }
+        }
+
+        async function loadStudyProtocols() {
+            try {
+                // Ensure clinical trials are loaded for the study protocols creation dropdown
+                if (!clinicalTrials || clinicalTrials.length === 0) {
+                    console.log('🔄 Clinical trials not loaded yet, loading them for study protocols...');
+                    await loadClinicalTrials();
+                }
+
+                // Temporary: Call backend API for testing
+                const token = localStorage.getItem('token');
+                const response = await fetch('${window.API_BASE_URL}/api/study-protocols', {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': token ? `Bearer ${token}` : ''
+                    }
+                });
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    updateStudyProtocolsList(data.studyProtocols);
+                } else {
+                    updateStudyProtocolsList([]);
+                }
+            } catch (error) {
+                console.error('Error loading study protocols:', error);
+                updateStudyProtocolsList([]);
+            }
+        }
+
+        // Training Materials Functions
+        async function addTrainingMaterial() {
+            const title = document.getElementById('trainingTitle').value;
+            const description = document.getElementById('trainingDescription').value;
+            const type = document.getElementById('trainingType').value;
+            const category = document.getElementById('trainingCategory').value;
+            const clinical_trial_id = document.getElementById('trainingClinicalTrial').value;
+
+            if (!title || !type || !clinical_trial_id) {
+                showAlert('trainingAlert', 'Please fill in title, select type, and clinical trial', 'error');
+                return;
+            }
+
+            let content = '';
+            if (type === 'text') {
+                content = document.getElementById('trainingTextContent').value;
+                if (!content) {
+                    showAlert('trainingAlert', 'Please enter text content', 'error');
+                    return;
+                }
+            } else {
+                const fileInput = type === 'pdf' ? document.getElementById('trainingFile') : document.getElementById('trainingFile');
+                if (fileInput.files.length === 0) {
+                    showAlert('trainingAlert', 'Please select a file to upload', 'error');
+                    return;
+                }
+                // For demo purposes, we'll just use the filename
+                content = `Uploaded file: ${fileInput.files[0].name}`;
+            }
+
+            try {
+                console.log('Sending training material data:', { title, description, type, content, category, editingTrainingMaterialId });
+
+                const isEditing = editingTrainingMaterialId !== null;
+                const method = isEditing ? 'PUT' : 'POST';
+                const url = isEditing
+                    ? `${window.API_BASE_URL}/api/training-materials/${editingTrainingMaterialId}`
+                    : `${window.API_BASE_URL}/api/training-materials`;
+
+                const token = localStorage.getItem('token');
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': token ? `Bearer ${token}` : '',
+                    },
+                    body: JSON.stringify({
+                        title,
+                        description,
+                        type,
+                        content,
+                        category,
+                        clinical_trial_id: clinical_trial_id
+                    })
+                });
+
+                console.log('Response status:', response.status);
+                const data = await response.json();
+                console.log('Response data:', data);
+
+                if (response.ok && data.success) {
+                    showAlert('trainingAlert', `Training material ${isEditing ? 'updated' : 'added'} successfully!`, 'success');
+
+                    // Clear form and reset edit state
+                    cancelTrainingMaterialEdit();
+
+                    // Small delay before refreshing to ensure backend processing is complete
+                    setTimeout(() => {
+                        loadTrainingMaterials(); // Refresh list
+                    }, 500);
+                } else {
+                    showAlert('trainingAlert', data.message || `Failed to ${isEditing ? 'update' : 'add'} training material`, 'error');
+                    console.error('Backend error:', data);
+                }
+            } catch (error) {
+                showAlert('trainingAlert', 'Error adding training material - but data may have been saved. Please refresh to check.', 'warning');
+                console.error('Frontend error:', error);
+            }
+        }
+
+        function cancelTrainingMaterialEdit() {
+                    // Clear form
+                    document.getElementById('trainingTitle').value = '';
+                    document.getElementById('trainingDescription').value = '';
+                    document.getElementById('trainingType').value = '';
+                    document.getElementById('trainingTextContent').value = '';
+                    document.getElementById('trainingFile').value = '';
+            document.getElementById('trainingCategory').value = '';
+                    document.getElementById('textContentSection').style.display = 'none';
+                    document.getElementById('fileUploadSection').style.display = 'none';
+
+            // Reset form state
+            const formTitle = document.querySelector('#tab4 h3');
+            if (formTitle) {
+                formTitle.textContent = 'Training Materials';
+            }
+            const submitBtn = document.getElementById('trainingSubmitBtn');
+            if (submitBtn) {
+                submitBtn.textContent = 'Add Training Material';
+            }
+            const cancelBtn = document.getElementById('trainingCancelBtn');
+            if (cancelBtn) {
+                cancelBtn.style.display = 'none';
+            }
+
+            // Reset editing state
+            editingTrainingMaterialId = null;
+        }
+
         async function editTrainingMaterial(materialId) {
             try {
                 // Fetch the training material data directly
                 const token = localStorage.getItem('token');
-                const response = await fetch('${window.API_BASE_URL}/api/training-materials', {
+                const response = await fetch(`${window.API_BASE_URL}/api/training-materials`, {
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': token ? `Bearer ${token}` : ''
@@ -3983,119 +3945,11 @@ ${endpointStatus.join('\n')}
             }
         }
 
-        async function addTrainingMaterial() {
-            const title = document.getElementById('trainingTitle').value;
-            const description = document.getElementById('trainingDescription').value;
-            const type = document.getElementById('trainingType').value;
-            const category = document.getElementById('trainingCategory').value;
-            const clinical_trial_id = document.getElementById('trainingClinicalTrial').value;
-
-            if (!title || !type || !clinical_trial_id) {
-                showAlert('trainingAlert', 'Please fill in title, select type, and clinical trial', 'error');
-                return;
-            }
-            
-            let content = '';
-            if (type === 'text') {
-                content = document.getElementById('trainingTextContent').value;
-                if (!content) {
-                    showAlert('trainingAlert', 'Please enter text content', 'error');
-                    return;
-                }
-            } else {
-                const fileInput = type === 'pdf' ? document.getElementById('trainingFile') : document.getElementById('trainingFile');
-                if (fileInput.files.length === 0) {
-                    showAlert('trainingAlert', 'Please select a file to upload', 'error');
-                    return;
-                }
-                // For demo purposes, we'll just use the filename
-                content = `Uploaded file: ${fileInput.files[0].name}`;
-            }
-            
-            try {
-                console.log('Sending training material data:', { title, description, type, content, category, editingTrainingMaterialId });
-
-                const isEditing = editingTrainingMaterialId !== null;
-                const method = isEditing ? 'PUT' : 'POST';
-                const url = isEditing
-                    ? `${window.API_BASE_URL}/api/training-materials/${editingTrainingMaterialId}`
-                    : `${window.API_BASE_URL}/api/training-materials`;
-
-                const token = localStorage.getItem('token');
-                const response = await fetch(url, {
-                    method: method,
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': token ? `Bearer ${token}` : '',
-                    },
-                    body: JSON.stringify({
-                        title,
-                        description,
-                        type,
-                        content,
-                        category,
-                        clinical_trial_id: clinical_trial_id
-                    })
-                });
-                
-                console.log('Response status:', response.status);
-                const data = await response.json();
-                console.log('Response data:', data);
-
-                if (response.ok && data.success) {
-                    showAlert('trainingAlert', `Training material ${isEditing ? 'updated' : 'added'} successfully!`, 'success');
-
-                    // Clear form and reset edit state
-                    cancelTrainingMaterialEdit();
-
-                    // Small delay before refreshing to ensure backend processing is complete
-                    setTimeout(() => {
-                        loadTrainingMaterials(); // Refresh list
-                    }, 500);
-                } else {
-                    showAlert('trainingAlert', data.message || `Failed to ${isEditing ? 'update' : 'add'} training material`, 'error');
-                    console.error('Backend error:', data);
-                }
-            } catch (error) {
-                showAlert('trainingAlert', 'Error adding training material - but data may have been saved. Please refresh to check.', 'warning');
-                console.error('Frontend error:', error);
-            }
-        }
-
-        function cancelTrainingMaterialEdit() {
-                    // Clear form
-                    document.getElementById('trainingTitle').value = '';
-                    document.getElementById('trainingDescription').value = '';
-                    document.getElementById('trainingType').value = '';
-                    document.getElementById('trainingTextContent').value = '';
-                    document.getElementById('trainingFile').value = '';
-            document.getElementById('trainingCategory').value = '';
-                    document.getElementById('textContentSection').style.display = 'none';
-                    document.getElementById('fileUploadSection').style.display = 'none';
-                    
-            // Reset form state
-            const formTitle = document.querySelector('#tab4 h3');
-            if (formTitle) {
-                formTitle.textContent = 'Training Materials';
-            }
-            const submitBtn = document.getElementById('trainingSubmitBtn');
-            if (submitBtn) {
-                submitBtn.textContent = 'Add Training Material';
-            }
-            const cancelBtn = document.getElementById('trainingCancelBtn');
-            if (cancelBtn) {
-                cancelBtn.style.display = 'none';
-            }
-
-            // Reset editing state
-            editingTrainingMaterialId = null;
-        }
-
         async function viewTrainingMaterial(materialId) {
             try {
                 // Fetch the training material data directly
                 const token = localStorage.getItem('token');
-                const response = await fetch('${window.API_BASE_URL}/api/training-materials', {
+                const response = await fetch(`${window.API_BASE_URL}/api/training-materials`, {
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': token ? `Bearer ${token}` : ''
@@ -4176,7 +4030,7 @@ ${endpointStatus.join('\n')}
             try {
                 // Fetch the training material data directly
                 const token = localStorage.getItem('token');
-                const response = await fetch('${window.API_BASE_URL}/api/training-materials', {
+                const response = await fetch(`${window.API_BASE_URL}/api/training-materials`, {
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': token ? `Bearer ${token}` : ''
@@ -4239,9 +4093,9 @@ ${endpointStatus.join('\n')}
                         'Content-Type': 'application/json'
                     }
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (response.ok) {
                     showAlert('trainingAlert', 'Training material deleted successfully!', 'success');
                     loadTrainingMaterials(); // Refresh list
@@ -4251,52 +4105,6 @@ ${endpointStatus.join('\n')}
             } catch (error) {
                 showAlert('trainingAlert', 'Error deleting training material', 'error');
                 console.error('Error:', error);
-            }
-        }
-
-        // Study Protocol Functions
-
-        function toggleProtocolUploadOptions() {
-            const type = document.getElementById('protocolType').value;
-            const textSection = document.getElementById('protocolTextContentSection');
-            const fileSection = document.getElementById('protocolFileUploadSection');
-            
-            textSection.style.display = 'none';
-            fileSection.style.display = 'none';
-            
-            if (type === 'text') {
-                textSection.style.display = 'block';
-            } else if (type === 'pdf') {
-                fileSection.style.display = 'block';
-            }
-        }
-
-        async function loadStudyProtocols() {
-            try {
-                // Ensure clinical trials are loaded for the study protocols creation dropdown
-                if (!clinicalTrials || clinicalTrials.length === 0) {
-                    console.log('🔄 Clinical trials not loaded yet, loading them for study protocols...');
-                    await loadClinicalTrials();
-                }
-
-                // Temporary: Call backend API for testing
-                const token = localStorage.getItem('token');
-                const response = await fetch('${window.API_BASE_URL}/api/study-protocols', {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': token ? `Bearer ${token}` : ''
-                    }
-                });
-                const data = await response.json();
-
-                if (response.ok && data.success) {
-                    updateStudyProtocolsList(data.studyProtocols);
-                } else {
-                    updateStudyProtocolsList([]);
-                }
-            } catch (error) {
-                console.error('Error loading study protocols:', error);
-                updateStudyProtocolsList([]);
             }
         }
 
@@ -4958,8 +4766,9 @@ ${endpointStatus.join('\n')}
                 return;
             }
 
+            const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
             messageThread.innerHTML = messages.map(msg => `
-                <div class="message ${msg.sender_id === localStorage.getItem('user') ? 'sent' : 'received'}">
+                <div class="message ${msg.sender_id === currentUser.id ? 'sent' : 'received'}">
                     <div class="message-avatar">${msg.sender_id.charAt(0).toUpperCase()}</div>
                     <div class="message-content">
                         <p class="message-text">${msg.content}</p>
@@ -5054,6 +4863,208 @@ ${endpointStatus.join('\n')}
             }
         }
 
+        // News & Documents Functions
+        async function saveDocument() {
+            const documentType = document.getElementById('documentType').value;
+            const title = document.getElementById('documentTitle').value;
+
+            if (!title) {
+                showAlert('newsAlert', 'Please enter a title', 'error');
+                return;
+            }
+
+            try {
+                if (documentType === 'news') {
+                    // Handle news items
+                    const content = document.getElementById('newsContent').value;
+
+                    if (!content) {
+                        showAlert('newsAlert', 'Please enter news content', 'error');
+                        return;
+                    }
+
+                    const clinical_trial_id = document.getElementById('newsClinicalTrial').value;
+
+                    if (!clinical_trial_id) {
+                        showAlert('newsAlert', 'Please select a clinical trial', 'error');
+                        return;
+                    }
+
+                    const token = localStorage.getItem('token');
+                    const isEditing = editingNewsId !== null;
+                    const url = isEditing
+                        ? `${window.API_BASE_URL}/api/news/${editingNewsId}`
+                        : `${window.API_BASE_URL}/api/news`;
+                    const method = isEditing ? 'PUT' : 'POST';
+
+                    console.log(`📤 ${method} ${url} - Editing: ${isEditing}, NewsId: ${editingNewsId}`);
+
+                    const response = await fetch(url, {
+                        method: method,
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': token ? `Bearer ${token}` : ''
+                        },
+                        body: JSON.stringify({
+                            title,
+                            content: content,
+                            clinical_trial_id: clinical_trial_id
+                        })
+                    });
+
+                    const data = await response.json();
+                    console.log('📥 Response:', response.status, data);
+
+                    if (response.ok && data.success) {
+                        showAlert('newsAlert', `News ${isEditing ? 'updated' : 'added'} successfully!`, 'success');
+                        cancelDocumentEdit();
+                        loadNewsItems();
+                    } else {
+                        showAlert('newsAlert', data.message || `Failed to ${isEditing ? 'update' : 'add'} news`, 'error');
+                    }
+                } else {
+                    // Handle document uploads (PDF/Text)
+                    const description = document.getElementById('documentDescription').value;
+                    const category = document.getElementById('documentCategory').value;
+                    const fileInput = document.getElementById('documentFile');
+
+                    if (!description || !fileInput.files[0]) {
+                        showAlert('newsAlert', 'Please fill in all fields and select a file', 'error');
+                        return;
+                    }
+
+                    // Validate file type
+                    const allowedTypes = ['application/pdf', 'text/plain', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/rtf'];
+                    const file = fileInput.files[0];
+
+                    if (!allowedTypes.includes(file.type) && !file.name.match(/\.(pdf|txt|doc|docx|rtf)$/i)) {
+                        showAlert('newsAlert', 'Please select a valid file (PDF, TXT, DOC, DOCX, or RTF)', 'error');
+                        return;
+                    }
+
+                    // Create FormData for file upload
+                    const formData = new FormData();
+                    formData.append('title', title);
+                    formData.append('description', description);
+                    formData.append('category', category || 'General');
+                    formData.append('file', file);
+
+                    const token = localStorage.getItem('token');
+                    const response = await fetch(`${window.API_BASE_URL}/api/study-protocols`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': token ? `Bearer ${token}` : ''
+                        },
+                        body: formData
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        showAlert('newsAlert', `${documentType.toUpperCase()} document added successfully!`, 'success');
+                        // Clear form
+                        cancelDocumentEdit();
+                        loadStudyProtocols();
+                    } else {
+                        showAlert('newsAlert', data.error || `Failed to add ${documentType} document`, 'error');
+                    }
+                }
+            } catch (error) {
+                showAlert('newsAlert', 'Error adding document', 'error');
+                console.error('Error:', error);
+            }
+        }
+
+        async function editNews(newsId, title, content, clinicalTrialId) {
+            console.log('🖊️ Editing news item:', newsId, title);
+
+            // Set editing mode
+            editingNewsId = newsId;
+
+            // Make sure we're on the News & Updates tab
+            showTab(1);
+
+            // Set document type to news
+            document.getElementById('documentType').value = 'news';
+            toggleDocumentForm();
+
+            // Update form title and button
+            document.getElementById('documentFormTitle').textContent = 'Edit News Item';
+            document.getElementById('documentSubmitBtn').textContent = 'Update News';
+            document.getElementById('documentCancelBtn').style.display = 'inline-block';
+
+            // Populate form with existing data
+            document.getElementById('documentTitle').value = title;
+            document.getElementById('newsContent').value = content;
+
+            // Wait for clinical trial selector to be populated, then set the value
+            setTimeout(async () => {
+                // Ensure clinical trial selector is populated
+                if (!clinicalTrials || clinicalTrials.length === 0) {
+                    await loadClinicalTrials();
+                }
+                await populateNewsClinicalTrialSelector();
+
+                // Now set the clinical trial value
+                const clinicalTrialElement = document.getElementById('newsClinicalTrial');
+                if (clinicalTrialElement) {
+                    clinicalTrialElement.value = clinicalTrialId;
+                    console.log('📝 Set clinical trial value to:', clinicalTrialId);
+                } else {
+                    console.error('❌ Could not find newsClinicalTrial element to set value');
+                }
+            }, 500);
+
+            console.log('📝 Form populated with:', { title, content });
+
+            // Scroll to form
+            setTimeout(() => {
+                document.getElementById('documentsSection').scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+        }
+
+        function cancelDocumentEdit() {
+            // Reset editing state
+            editingNewsId = null;
+
+            // Reset form
+            document.getElementById('documentFormTitle').textContent = 'Add News/Update or Upload Document';
+            document.getElementById('documentSubmitBtn').textContent = 'Add Document';
+            document.getElementById('documentCancelBtn').style.display = 'none';
+
+            // Clear all form fields
+            document.getElementById('documentType').value = 'news';
+            document.getElementById('documentTitle').value = '';
+            document.getElementById('newsContent').value = '';
+            document.getElementById('documentDescription').value = '';
+            document.getElementById('documentCategory').value = '';
+            document.getElementById('documentFile').value = '';
+
+            // Reset form display
+            toggleDocumentForm();
+        }
+
+        async function deleteNews(newsId) {
+            if (!confirm('Are you sure you want to delete this news item?')) return;
+
+            try {
+                const response = await fetch(`${window.API_BASE_URL}/api/news/${newsId}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showAlert('newsAlert', 'News item deleted successfully!', 'success');
+                    loadNewsItems(); // Refresh news data
+                } else {
+                    showAlert('newsAlert', data.message || 'Failed to delete news item', 'error');
+                }
+            } catch (error) {
+                showAlert('newsAlert', 'Error deleting news item', 'error');
+                console.error('Error:', error);
+            }
+        }
 
     </script>
 </body>

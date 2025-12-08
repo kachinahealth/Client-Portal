@@ -23,45 +23,6 @@ END;
 $$ language 'plpgsql';
 
 -- ==================================================
--- LEGACY TABLES (for backward compatibility)
--- ==================================================
-
--- Clients table (legacy)
-CREATE TABLE IF NOT EXISTS clients (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  name TEXT NOT NULL,
-  email TEXT NOT NULL UNIQUE,
-  company TEXT,
-  phone TEXT,
-  status TEXT DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'pending')),
-  created_by UUID REFERENCES auth.users(id),
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- Updated_at trigger for clients
-CREATE TRIGGER update_clients_updated_at
-    BEFORE UPDATE ON clients
-    FOR EACH ROW
-    EXECUTE FUNCTION update_updated_at_column();
-
--- Enable RLS for clients
-ALTER TABLE clients ENABLE ROW LEVEL SECURITY;
-
--- RLS policies for clients
-CREATE POLICY "Users can view all clients" ON clients
-  FOR SELECT USING (auth.role() = 'authenticated');
-
-CREATE POLICY "Users can insert clients" ON clients
-  FOR INSERT WITH CHECK (auth.role() = 'authenticated');
-
-CREATE POLICY "Users can update clients" ON clients
-  FOR UPDATE USING (auth.role() = 'authenticated');
-
-CREATE POLICY "Users can delete clients" ON clients
-  FOR DELETE USING (auth.role() = 'authenticated');
-
--- ==================================================
 -- CORE APPLICATION TABLES
 -- ==================================================
 
@@ -283,43 +244,6 @@ CREATE POLICY "Users can update clinical trials" ON clinical_trials
 CREATE POLICY "Users can delete clinical trials" ON clinical_trials
   FOR DELETE USING (auth.role() = 'authenticated');
 
--- PDF Documents table
-CREATE TABLE IF NOT EXISTS pdf_documents (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  title TEXT NOT NULL,
-  description TEXT,
-  category TEXT,
-  file_url TEXT,
-  file_name TEXT,
-  file_size INTEGER,
-  uploaded_by UUID REFERENCES auth.users(id),
-  uploaded_by_name TEXT,
-  is_active BOOLEAN DEFAULT true,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- Updated_at trigger for pdf_documents
-CREATE TRIGGER update_pdf_documents_updated_at
-    BEFORE UPDATE ON pdf_documents
-    FOR EACH ROW
-    EXECUTE FUNCTION update_updated_at_column();
-
--- Enable RLS for pdf_documents
-ALTER TABLE pdf_documents ENABLE ROW LEVEL SECURITY;
-
--- RLS policies for pdf_documents
-CREATE POLICY "Users can view all PDF documents" ON pdf_documents
-  FOR SELECT USING (auth.role() = 'authenticated');
-
-CREATE POLICY "Users can insert PDF documents" ON pdf_documents
-  FOR INSERT WITH CHECK (auth.role() = 'authenticated');
-
-CREATE POLICY "Users can update PDF documents" ON pdf_documents
-  FOR UPDATE USING (auth.role() = 'authenticated');
-
-CREATE POLICY "Users can delete PDF documents" ON pdf_documents
-  FOR DELETE USING (auth.role() = 'authenticated');
 
 -- User Analytics table
 CREATE TABLE IF NOT EXISTS user_analytics (
@@ -375,67 +299,66 @@ CREATE POLICY "Only admins can modify app settings" ON app_settings
       AND users.role = 'admin'
     )
   );
+-- Profiles table (for user display information)
+CREATE TABLE IF NOT EXISTS profiles (
+  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  display_name TEXT,
+  avatar_url TEXT,
+  bio TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 
--- ==================================================
--- SAMPLE DATA INSERTION
--- ==================================================
+-- Updated_at trigger for profiles
+CREATE TRIGGER update_profiles_updated_at
+    BEFORE UPDATE ON profiles
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
 
--- Insert sample users
-INSERT INTO users (name, email, role, site, created_by_name) VALUES
-('Admin User', 'admin@kachinahealth.com', 'admin', 'Corporate', 'System'),
-('John Smith', 'john.smith@hospital1.com', 'manager', 'Hospital 1', 'Admin User'),
-('Sarah Johnson', 'sarah.johnson@hospital2.com', 'user', 'Hospital 2', 'Admin User'),
-('Mike Davis', 'mike.davis@hospital3.com', 'user', 'Hospital 3', 'Admin User'),
-('Lisa Brown', 'lisa.brown@hospital4.com', 'manager', 'Hospital 4', 'Admin User'),
-('David Wilson', 'david.wilson@clinic1.com', 'user', 'Clinic 1', 'Admin User'),
-('Jennifer Garcia', 'jennifer.garcia@clinic2.com', 'user', 'Clinic 2', 'Admin User');
+-- Enable RLS for profiles
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 
--- Insert sample hospitals
-INSERT INTO hospitals (name, location, consented, randomized) VALUES
-('Metropolitan General Hospital', 'New York, NY', 125, 95),
-('City Medical Center', 'Los Angeles, CA', 98, 87),
-('Regional Health System', 'Chicago, IL', 156, 123),
-('Community Hospital', 'Houston, TX', 87, 76);
+-- RLS policies for profiles
+CREATE POLICY "Users can view all profiles" ON profiles
+  FOR SELECT USING (auth.role() = 'authenticated');
 
--- Insert sample news items
-INSERT INTO news_items (title, content, category, created_by_name) VALUES
-('Welcome to KachinaHealth Portal', 'Welcome to the new KachinaHealth client portal! This platform provides comprehensive access to clinical trial data, training materials, and study protocols.', 'Announcement', 'Admin User'),
-('New Training Module Available', 'We have added a new training module on GCP compliance. Please review the materials in the Training Materials section.', 'Training', 'Admin User'),
-('System Maintenance Notice', 'Scheduled maintenance will occur this weekend from 2 AM to 4 AM EST. The system may be temporarily unavailable.', 'Maintenance', 'Admin User');
+CREATE POLICY "Users can insert their own profile" ON profiles
+  FOR INSERT WITH CHECK (auth.uid() = id);
 
--- Insert sample training materials
-INSERT INTO training_materials (title, description, type, content, category, created_by_name) VALUES
-('Introduction to Clinical Trials', 'Basic overview of clinical trial processes and terminology', 'text', 'Clinical trials are research studies that test new medical treatments, drugs, or devices in humans. They follow strict protocols and ethical guidelines to ensure safety and efficacy.', 'General', 'Admin User'),
-('GCP Training Module', 'Good Clinical Practice guidelines and compliance', 'pdf', '/files/gcp-training.pdf', 'Compliance', 'Admin User'),
-('Patient Recruitment Best Practices', 'Strategies for effective patient recruitment in clinical trials', 'text', 'Effective patient recruitment involves clear communication, building trust with healthcare providers, and utilizing multiple outreach channels.', 'Procedure Training', 'Admin User'),
-('Data Management Overview', 'Introduction to clinical data management systems', 'video', '/videos/data-management.mp4', 'Safety Training', 'Admin User');
+CREATE POLICY "Users can update their own profile" ON profiles
+  FOR UPDATE USING (auth.uid() = id);
 
--- Insert sample study protocols
-INSERT INTO study_protocols (title, description, type, content, version, created_by_name) VALUES
-('Phase III Cardiac Study Protocol', 'Complete protocol for the Phase III cardiac intervention study', 'pdf', '/protocols/cardiac-study-v2.pdf', '2.1', 'Admin User'),
-('Patient Recruitment Guidelines', 'Guidelines for patient recruitment and enrollment procedures', 'text', 'This protocol outlines the procedures for identifying, screening, and enrolling eligible patients into the clinical trial.', '1.0', 'Admin User'),
-('Data Collection Standards', 'Standards and procedures for data collection and management', 'pdf', '/protocols/data-standards-v3.pdf', '3.0', 'Admin User'),
-('Safety Monitoring Protocol', 'Adverse event reporting and safety monitoring procedures', 'text', 'All adverse events must be reported within 24 hours. This protocol details the reporting procedures and escalation paths.', '2.0', 'Admin User');
+-- Messages table
+CREATE TABLE IF NOT EXISTS messages (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  sender_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  recipient_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  content TEXT NOT NULL,
+  message_type TEXT DEFAULT 'text' CHECK (message_type IN ('text', 'image', 'file')),
+  is_read BOOLEAN DEFAULT false,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 
--- Insert sample clinical trials
-INSERT INTO clinical_trials (trial_name, sponsor, phase, status, start_date, end_date, description) VALUES
-('CARDIAC-001: Minimally Invasive Cardiac Intervention', 'KachinaHealth', 'Phase 3', 'Recruiting', '2024-01-15', '2026-12-31', 'Phase III clinical trial evaluating minimally invasive cardiac intervention procedures'),
-('NEURO-002: Neurological Assessment Study', 'KachinaHealth', 'Phase 2', 'Active', '2023-09-01', '2025-08-31', 'Phase II study assessing neurological outcomes following intervention'),
-('VASCULAR-003: Vascular Access Optimization', 'KachinaHealth', 'Phase 2', 'Recruiting', '2024-03-01', '2026-02-28', 'Phase II trial optimizing vascular access techniques'),
-('PEDIATRIC-004: Pediatric Intervention Study', 'KachinaHealth', 'Phase 1', 'Active', '2023-11-01', '2025-10-31', 'Phase I safety study for pediatric applications'),
-('LONG-TERM-005: Five-Year Follow-up Study', 'KachinaHealth', 'Phase 4', 'Active', '2022-01-01', '2027-12-31', 'Long-term follow-up study tracking patient outcomes over 5 years'),
-('QUALITY-006: Quality of Life Assessment', 'KachinaHealth', 'Phase 3', 'Completed', '2021-06-01', '2024-05-31', 'Quality of life assessment following intervention procedures'),
-('COST-007: Cost-Effectiveness Analysis', 'KachinaHealth', 'Phase 4', 'Recruiting', '2024-02-01', '2027-01-31', 'Cost-effectiveness analysis of intervention procedures'),
-('INTERNATIONAL-008: Multi-Center Global Study', 'KachinaHealth', 'Phase 3', 'Active', '2023-07-01', '2026-06-30', 'Multi-center international study across 15 countries');
+-- Updated_at trigger for messages
+CREATE TRIGGER update_messages_updated_at
+    BEFORE UPDATE ON messages
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
 
--- Insert sample app settings
-INSERT INTO app_settings (setting_key, setting_value, description) VALUES
-('site_name', '"KachinaHealth Client Portal"', 'Name of the application'),
-('version', '"1.0.0"', 'Current application version'),
-('maintenance_mode', 'false', 'Whether the application is in maintenance mode'),
-('max_file_size', '52428800', 'Maximum file upload size in bytes (50MB)'),
-('allowed_file_types', '["pdf", "mp4", "avi", "mov", "doc", "docx"]', 'Allowed file types for uploads'),
-('session_timeout', '3600000', 'Session timeout in milliseconds (1 hour)');
+-- Enable RLS for messages
+ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
+
+-- RLS policies for messages
+CREATE POLICY "Users can view messages they sent or received" ON messages
+  FOR SELECT USING (auth.uid() = sender_id OR auth.uid() = recipient_id);
+
+CREATE POLICY "Users can insert messages they send" ON messages
+  FOR INSERT WITH CHECK (auth.uid() = sender_id);
+
+CREATE POLICY "Users can update messages they sent" ON messages
+  FOR UPDATE USING (auth.uid() = sender_id);
+
 
 -- ==================================================
 -- COMPLETION MESSAGE
