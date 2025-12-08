@@ -18,6 +18,93 @@
             localStorage.removeItem('user');
             window.location.href = '/';
         }
+
+        // Tab switching function - defined early so it's available when HTML elements call it
+        function showTab(index) {
+            console.log('🔄 showTab() called with index:', index);
+            console.log('All tab contents before:', document.querySelectorAll('.tab-content'));
+            console.log('Active tabs before:', document.querySelectorAll('.tab-content.active'));
+
+            // Hide all tab contents - FORCE hide them all first
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach((content, i) => {
+                content.classList.remove('active');
+                content.style.display = 'none'; // Force hide
+                console.log(`Tab ${i} hidden`);
+            });
+
+            // Remove active class from all tab buttons
+            const tabButtons = document.querySelectorAll('.tab-button');
+            tabButtons.forEach((button, i) => {
+                button.classList.remove('active');
+                console.log(`Button ${i} deactivated`);
+            });
+
+            // Show selected tab
+            const targetContent = tabContents[index];
+            const targetButton = tabButtons[index];
+
+            console.log('Target content:', targetContent);
+            console.log('Target button:', targetButton);
+
+            if (targetContent && targetButton) {
+                targetContent.classList.add('active');
+                targetContent.style.display = 'block'; // Force show
+                targetButton.classList.add('active');
+                console.log('✅ Successfully switched to tab:', index);
+                console.log('Active tabs after:', document.querySelectorAll('.tab-content.active'));
+            } else {
+                console.error('❌ Tab switching failed - element not found for index:', index);
+                console.log('Available tab contents:', tabContents.length);
+                console.log('Available tab buttons:', tabButtons.length);
+                console.log('Tab content IDs:', Array.from(tabContents).map(el => el.id));
+            }
+
+            // Load content when tabs are shown
+            if (index === 0) {
+                loadUsers(); // User Management tab
+            } else if (index === 1) {
+                loadNewsItems(); // News & Updates tab
+                // Ensure clinical trial selector is populated for the current user role
+                setTimeout(() => {
+                    populateNewsClinicalTrialSelector();
+                }, 100);
+            } else if (index === 2) {
+                loadLeaderboard(); // Enrollment Leaderboard tab
+            } else if (index === 3) {
+                loadClinicalTrials(); // Clinical Trials tab
+            } else if (index === 4) {
+                loadPDFDocuments(); // Training Materials tab
+            } else if (index === 5) {
+                loadPDFDocuments(); // Study Protocol tab
+            } else if (index === 6) {
+                loadAnalytics(); // Analytics tab
+            } else if (index === 7) {
+                loadMessages(); // Messaging tab
+            }
+        }
+
+        // Compose new message function - defined early so it's available when HTML elements call it
+        function composeNewMessage() {
+            // Show recipient selection modal
+            const modal = document.createElement('div');
+            modal.className = 'new-message-overlay';
+            modal.innerHTML = `
+                <div class="new-message-modal">
+                    <h3>New Message</h3>
+                    <select id="recipientSelect" style="width: 100%; padding: 0.75rem; margin-bottom: 1rem; border: 1px solid #ddd; border-radius: 4px;">
+                        <option value="">Select recipient...</option>
+                        ${conversations.map(conv => `<option value="${conv.id}">${conv.name}</option>`).join('')}
+                    </select>
+                    <textarea id="newMessageText" placeholder="Type your message..." rows="4" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 1rem;"></textarea>
+                    <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                        <button onclick="this.closest('.new-message-overlay').remove()">Cancel</button>
+                        <button class="btn-primary" onclick="sendNewMessage()">Send</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
     </script>
     <style>
         * {
@@ -1706,68 +1793,6 @@
         let conversations = [];
         let messages = [];
 
-        // Tab navigation function - needs to be defined before HTML uses it
-        function showTab(index) {
-            console.log('🔄 Switching to tab:', index);
-            console.log('All tab contents before:', document.querySelectorAll('.tab-content'));
-            console.log('Active tabs before:', document.querySelectorAll('.tab-content.active'));
-
-            // Hide all tab contents - FORCE hide them all first
-            const tabContents = document.querySelectorAll('.tab-content');
-            tabContents.forEach((content, i) => {
-                content.classList.remove('active');
-                content.style.display = 'none'; // Force hide
-                console.log(`Tab ${i} hidden`);
-            });
-
-            // Remove active class from all tab buttons
-            const tabButtons = document.querySelectorAll('.tab-button');
-            tabButtons.forEach((button, i) => {
-                button.classList.remove('active');
-                console.log(`Button ${i} deactivated`);
-            });
-
-            // Show selected tab
-            const targetContent = tabContents[index];
-            const targetButton = tabButtons[index];
-
-            console.log('Target content:', targetContent);
-            console.log('Target button:', targetButton);
-
-            if (targetContent && targetButton) {
-                targetContent.classList.add('active');
-                targetContent.style.display = 'block'; // Force show
-                targetButton.classList.add('active');
-                console.log('✅ Successfully switched to tab:', index);
-                console.log('Active tabs after:', document.querySelectorAll('.tab-content.active'));
-            } else {
-                console.error('❌ Tab switching failed - element not found for index:', index);
-                console.log('Available tab contents:', tabContents.length);
-                console.log('Available tab buttons:', tabButtons.length);
-                console.log('Tab content IDs:', Array.from(tabContents).map(el => el.id));
-            }
-
-            // Load content when tabs are shown
-            if (index === 1) {
-                loadNewsItems(); // News & Updates tab
-                // Ensure clinical trial selector is populated for the current user role
-                setTimeout(() => {
-                    populateNewsClinicalTrialSelector();
-                }, 100);
-            } else if (index === 2) {
-                loadUsers(); // Users tab
-            } else if (index === 3) {
-                loadTrials(); // Clinical Trials tab
-            } else if (index === 4) {
-                loadTrainingMaterials(); // Training Materials tab
-            } else if (index === 5) {
-                loadStudyProtocols(); // Study Protocol tab
-            } else if (index === 6) {
-                loadAnalytics(); // Analytics tab
-            } else if (index === 7) {
-                loadMessages(); // Messaging tab
-            }
-        }
 
         // Initialize dashboard
         window.onload = async function() {
@@ -1846,69 +1871,6 @@
             testServerConnectivity();
         };
 
-        function showTab(index) {
-            console.log('🔄 Switching to tab:', index);
-            console.log('All tab contents before:', document.querySelectorAll('.tab-content'));
-            console.log('Active tabs before:', document.querySelectorAll('.tab-content.active'));
-
-            // Hide all tab contents - FORCE hide them all first
-            const tabContents = document.querySelectorAll('.tab-content');
-            tabContents.forEach((content, i) => {
-                content.classList.remove('active');
-                content.style.display = 'none'; // Force hide
-                console.log(`Tab ${i} hidden`);
-            });
-
-            // Remove active class from all tab buttons
-            const tabButtons = document.querySelectorAll('.tab-button');
-            tabButtons.forEach((button, i) => {
-                button.classList.remove('active');
-                console.log(`Button ${i} deactivated`);
-            });
-
-            // Show selected tab
-            const targetContent = tabContents[index];
-            const targetButton = tabButtons[index];
-
-            console.log('Target content:', targetContent);
-            console.log('Target button:', targetButton);
-
-            if (targetContent && targetButton) {
-                targetContent.classList.add('active');
-                targetContent.style.display = 'block'; // Force show
-                targetButton.classList.add('active');
-                console.log('✅ Successfully switched to tab:', index);
-                console.log('Active tabs after:', document.querySelectorAll('.tab-content.active'));
-            } else {
-                console.error('❌ Tab switching failed - element not found for index:', index);
-                console.log('Available tab contents:', tabContents.length);
-                console.log('Available tab buttons:', tabButtons.length);
-                console.log('Tab content IDs:', Array.from(tabContents).map(el => el.id));
-            }
-
-            // Load content when tabs are shown
-            if (index === 1) {
-                loadNewsItems(); // News & Updates tab
-                // Ensure clinical trial selector is populated for the current user role
-                setTimeout(() => {
-                    populateNewsClinicalTrialSelector();
-                }, 100);
-            } else if (index === 2) {
-                loadUsers(); // Users tab
-            } else if (index === 3) {
-                loadTrials(); // Clinical Trials tab
-            } else if (index === 4) {
-                loadTrainingMaterials(); // Training Materials tab
-            } else if (index === 5) {
-                loadStudyProtocols(); // Study Protocol tab
-            } else if (index === 6) {
-                loadAnalytics(); // Analytics tab
-            } else if (index === 7) {
-                loadMessages(); // Messaging tab
-            } else if (index === 7) {
-                loadMessages(); // Messaging tab
-            }
-        }
 
         function toggleDocumentForm() {
             const documentType = document.getElementById('documentType').value;
@@ -2103,7 +2065,7 @@
             // Clear existing tab buttons
             tabButtonsContainer.innerHTML = '';
 
-            // Define all possible tabs with their indices
+            // Define all possible tabs with their indices (must match HTML tab content)
             const allTabs = [
                 { index: 0, name: 'User Management', show: true },
                 { index: 1, name: 'News & Updates', show: true },
@@ -2112,7 +2074,7 @@
                 { index: 4, name: 'Training Materials', show: true },
                 { index: 5, name: 'Study Protocol', show: true },
                 { index: 6, name: 'Analytics', show: true },
-                { index: 7, name: 'Settings', show: true }
+                { index: 7, name: 'Messaging', show: true }
             ];
 
             // Filter tabs based on user role and create buttons
@@ -2130,8 +2092,10 @@
                     if (content) {
                         if (visibleTabIndex === 0) {
                             content.classList.add('active');
+                            content.style.display = 'block'; // Force show
                         } else {
                             content.classList.remove('active');
+                            content.style.display = 'none'; // Force hide
                         }
                     }
 
@@ -2141,6 +2105,7 @@
                     const content = document.getElementById(`tab${tab.index}`);
                     if (content) {
                         content.classList.remove('active');
+                        content.style.display = 'none'; // Force hide
                     }
                 }
             });
@@ -2149,6 +2114,7 @@
         }
 
         async function loadUsers() {
+            console.log('🚀 loadUsers() called - User Management tab');
             try {
                 // Ensure clinical trials are loaded for the user assignment dropdowns
                 if (!clinicalTrials || clinicalTrials.length === 0) {
@@ -2157,21 +2123,26 @@
                 }
 
                 const token = localStorage.getItem('token');
+                console.log('🔑 Token present for users API:', !!token);
                 const response = await fetch(`${window.API_BASE_URL}/api/users`, {
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': token ? `Bearer ${token}` : ''
                     }
                 });
+                console.log('📡 Users API response status:', response.status);
                 const data = await response.json();
+                console.log('📦 Users API response:', data);
 
                 if (response.ok && data.success) {
+                    console.log('✅ Successfully loaded', data.users?.length || 0, 'users');
                     updateUserTable(data.users);
                 } else {
+                    console.log('❌ Failed to load users:', data.message);
                     updateUserTable([]);
                 }
             } catch (error) {
-                console.error('Error loading users:', error);
+                console.error('💥 Error loading users:', error);
                 updateUserTable([]);
             }
         }
@@ -2856,6 +2827,7 @@
 
 
         async function loadNewsItems() {
+            console.log('🚀 loadNewsItems() called - News & Updates tab');
             try {
                 // Ensure clinical trials are loaded for the news creation dropdown
                 if (!clinicalTrials || clinicalTrials.length === 0) {
@@ -2864,21 +2836,26 @@
                 }
 
                 const token = localStorage.getItem('token');
+                console.log('🔑 Token present for news API:', !!token);
                 const response = await fetch(`${window.API_BASE_URL}/api/news`, {
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': token ? `Bearer ${token}` : ''
                     }
                 });
+                console.log('📡 News API response status:', response.status);
                 const data = await response.json();
+                console.log('📦 News API response:', data);
 
                 if (response.ok && data.success) {
+                    console.log('✅ Successfully loaded', data.newsItems?.length || 0, 'news items');
                     updateNewsList(data.newsItems || []);
                 } else {
+                    console.log('❌ Failed to load news items:', data.message);
                     updateNewsList([]);
                 }
             } catch (error) {
-                console.error('Error loading news items:', error);
+                console.error('💥 Error loading news items:', error);
                 updateNewsList([]);
             }
         }
@@ -3292,6 +3269,7 @@
 
         // Leaderboard Functions
         async function loadLeaderboard() {
+            console.log('🚀 loadLeaderboard() called - Enrollment Leaderboard tab');
             try {
                 // Temporary: Remove authentication for testing
                 const response = await fetch(`${window.API_BASE_URL}/api/hospitals`, {
@@ -3299,15 +3277,19 @@
                         'Content-Type': 'application/json'
                     }
                 });
+                console.log('📡 Hospitals API response status:', response.status);
                 const data = await response.json();
+                console.log('📦 Hospitals API response:', data);
 
                 if (response.ok && data.success) {
+                    console.log('✅ Successfully loaded leaderboard data');
                     updateLeaderboard(data);
                 } else {
+                    console.log('❌ Failed to load leaderboard data');
                     updateLeaderboard({ hospitals: [], summary: { totalConsented: 0, totalRandomized: 0, totalHospitals: 0 } });
                 }
             } catch (error) {
-                console.error('Error loading leaderboard:', error);
+                console.error('💥 Error loading leaderboard:', error);
                 updateLeaderboard({ hospitals: [], summary: { totalConsented: 0, totalRandomized: 0, totalHospitals: 0 } });
             }
         }
@@ -5028,27 +5010,6 @@ ${endpointStatus.join('\n')}
 
             // Scroll to bottom
             messageThread.scrollTop = messageThread.scrollHeight;
-        }
-
-        function composeNewMessage() {
-            // Show recipient selection modal
-            const modal = document.createElement('div');
-            modal.className = 'new-message-overlay';
-            modal.innerHTML = `
-                <div class="new-message-modal">
-                    <h3>New Message</h3>
-                    <select id="recipientSelect" style="width: 100%; padding: 0.75rem; margin-bottom: 1rem; border: 1px solid #ddd; border-radius: 4px;">
-                        <option value="">Select recipient...</option>
-                        ${conversations.map(conv => `<option value="${conv.id}">${conv.name}</option>`).join('')}
-                    </select>
-                    <textarea id="newMessageText" placeholder="Type your message..." rows="4" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 1rem;"></textarea>
-                    <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
-                        <button onclick="this.closest('.new-message-overlay').remove()">Cancel</button>
-                        <button class="btn-primary" onclick="sendNewMessage()">Send</button>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(modal);
         }
 
         async function sendNewMessage() {
