@@ -41,7 +41,7 @@
             document.body.appendChild(modal);
         }
 
-        // Tab switching function - defined early so it's available when HTML elements call it
+        // Tab switching function - defined early so it's available for event listeners
         function showTab(index) {
             console.log('🔄 showTab() called with index:', index);
             console.log('All tab contents before:', document.querySelectorAll('.tab-content'));
@@ -80,29 +80,57 @@
                 console.log('Tab content IDs:', Array.from(tabContents).map(el => el.id));
             }
 
-            // Load content when tabs are shown
-            if (index === 0) {
+            // Load content when tabs are shown - check if functions exist first
+            if (index === 0 && typeof loadUsers === 'function') {
                 loadUsers(); // User Management tab
-            } else if (index === 1) {
+            } else if (index === 1 && typeof loadNewsItems === 'function') {
                 loadNewsItems(); // News & Updates tab
                 // Ensure clinical trial selector is populated for the current user role
                 setTimeout(() => {
-                    populateNewsClinicalTrialSelector();
+                    if (typeof populateNewsClinicalTrialSelector === 'function') {
+                        populateNewsClinicalTrialSelector();
+                    }
                 }, 100);
-            } else if (index === 2) {
+            } else if (index === 2 && typeof loadLeaderboard === 'function') {
                 loadLeaderboard(); // Enrollment Leaderboard tab
-            } else if (index === 3) {
+            } else if (index === 3 && typeof loadClinicalTrials === 'function') {
                 loadClinicalTrials(); // Clinical Trials tab
-            } else if (index === 4) {
+            } else if (index === 4 && typeof loadPDFDocuments === 'function') {
                 loadPDFDocuments(); // Training Materials tab
-            } else if (index === 5) {
+            } else if (index === 5 && typeof loadPDFDocuments === 'function') {
                 loadPDFDocuments(); // Study Protocol tab
-            } else if (index === 6) {
+            } else if (index === 6 && typeof loadAnalytics === 'function') {
                 loadAnalytics(); // Analytics tab
-            } else if (index === 7) {
+            } else if (index === 7 && typeof loadMessages === 'function') {
                 loadMessages(); // Messaging tab
             }
         }
+
+        // Initialize tab event listeners after DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add click event listeners to tab buttons
+            const tabButtons = document.querySelectorAll('.tab-button');
+            tabButtons.forEach((button, index) => {
+                button.addEventListener('click', function() {
+                    console.log(`Tab ${index} clicked via event listener`);
+                    showTab(index);
+                });
+            });
+
+            // Add click event listeners to "New Message" buttons
+            const newMessageButtons = document.querySelectorAll('button[onclick*="composeNewMessage"]');
+            newMessageButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault(); // Prevent any default onclick behavior
+                    if (typeof composeNewMessage === 'function') {
+                        composeNewMessage();
+                    }
+                });
+                // Remove the onclick attribute to prevent conflicts
+                button.removeAttribute('onclick');
+            });
+        });
+
 
 
     </script>
@@ -1146,14 +1174,14 @@
 
         <div class="tabs">
             <div class="tab-buttons">
-                <button class="tab-button active" onclick="console.log('Tab 0 clicked'); showTab(0)">User Management</button>
-                <button class="tab-button" onclick="console.log('Tab 1 clicked'); showTab(1)">News & Updates</button>
-                <button class="tab-button" onclick="console.log('Tab 2 clicked'); showTab(2)">Enrollment Leaderboard</button>
-                <button class="tab-button" onclick="console.log('Tab 3 clicked'); showTab(3)">Clinical Trials</button>
-                <button class="tab-button" onclick="console.log('Tab 4 clicked'); showTab(4)">Training Materials</button>
-                <button class="tab-button" onclick="console.log('Tab 5 clicked'); showTab(5)">Study Protocol</button>
-                <button class="tab-button" onclick="console.log('Tab 6 clicked'); showTab(6)">Analytics</button>
-                <button class="tab-button" onclick="console.log('Tab 7 clicked'); showTab(7)">Messaging</button>
+                <button class="tab-button active">User Management</button>
+                <button class="tab-button">News & Updates</button>
+                <button class="tab-button">Enrollment Leaderboard</button>
+                <button class="tab-button">Clinical Trials</button>
+                <button class="tab-button">Training Materials</button>
+                <button class="tab-button">Study Protocol</button>
+                <button class="tab-button">Analytics</button>
+                <button class="tab-button">Messaging</button>
             </div>
 
             <div class="tab-content active" id="tab0">
@@ -1664,93 +1692,7 @@
                     <div class="messaging-sidebar">
                         <div class="messaging-header">
                             <h4>Conversations</h4>
-                            <button class="btn-primary" onclick="composeNewMessage()">New Message</button>
-                        </div>
-                        <div class="conversations-list" id="conversationsList">
-                            <div class="loading">Loading conversations...</div>
-                        </div>
-                    </div>
-
-                    <div class="messaging-main">
-                        <div class="message-thread" id="messageThread">
-                            <div class="no-conversation">
-                                <div class="no-conversation-icon">💬</div>
-                                <h4>Select a conversation</h4>
-                                <p>Choose a conversation from the sidebar to view messages</p>
-                            </div>
-                        </div>
-
-                        <div class="message-compose" id="messageCompose">
-                            <div class="compose-header">
-                                <span id="composeRecipient">Select recipient</span>
-                                <button onclick="cancelCompose()">✕</button>
-                            </div>
-                            <div class="compose-body">
-                                <textarea id="messageInput" placeholder="Type your message..."></textarea>
-                                <div class="compose-actions">
-                                    <button onclick="sendMessage()" class="btn-primary">Send Message</button>
-                                    <button onclick="cancelCompose()">Cancel</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="analytics-filters">
-                    <select id="analyticsFilter" onchange="filterAnalytics()">
-                        <option value="all">All Users</option>
-                        <option value="active">Active Users (Last 7 Days)</option>
-                        <option value="inactive">Inactive Users (No Activity > 30 Days)</option>
-                    </select>
-                </div>
-
-                <div class="analytics-grid">
-                    <div class="analytics-card">
-                        <h5>Overall Engagement</h5>
-                        <div class="stat-number" id="totalAppOpens">-</div>
-                        <div class="stat-label">Total App Opens</div>
-                    </div>
-                    <div class="analytics-card">
-                        <h5>Active Users</h5>
-                        <div class="stat-number" id="activeUsers">-</div>
-                        <div class="stat-label">Users Active in Last 7 Days</div>
-                    </div>
-                </div>
-
-                <div class="analytics-table-container">
-                    <table class="analytics-table">
-                        <thead>
-                            <tr>
-                                <th>User</th>
-                                <th>Site</th>
-                                <th>Last Active</th>
-                                <th>Total App Opens</th>
-                                <th>Most Viewed Tab</th>
-                                <th>Details</th>
-                            </tr>
-                        </thead>
-                        <tbody id="analyticsTableBody">
-                            <tr><td colspan="6">Loading analytics...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- User Details Modal -->
-                <div id="userAnalyticsModal" class="modal">
-                    <div class="modal-content">
-                        <span class="close">&times;</span>
-                        <h4>User Analytics Details</h4>
-                        <div id="userAnalyticsDetails"></div>
-                    </div>
-                </div>
-            </div>
-                <h3>Messaging</h3>
-
-                <div class="messaging-container">
-                    <div class="messaging-sidebar">
-                        <div class="messaging-header">
-                            <h4>Conversations</h4>
-                            <button class="btn-primary" onclick="composeNewMessage()">New Message</button>
+                            <button class="btn-primary">New Message</button>
                         </div>
                         <div class="conversations-list" id="conversationsList">
                             <div class="loading">Loading conversations...</div>
@@ -5111,6 +5053,7 @@ ${endpointStatus.join('\n')}
                 alert('Error sending message');
             }
         }
+
 
     </script>
 </body>
