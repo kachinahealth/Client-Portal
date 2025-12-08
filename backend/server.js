@@ -9,7 +9,20 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
-app.use(cors());
+// CORS configuration for development (allows file:// protocol)
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, file:// protocol, etc.)
+    if (!origin || origin.startsWith('file://') || origin.includes('localhost') || origin.includes('127.0.0.1')) {
+      return callback(null, true);
+    }
+    // Allow all origins for now
+    return callback(null, true);
+  },
+  credentials: true
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Configure multer for file uploads
