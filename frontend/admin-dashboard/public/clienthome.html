@@ -2480,7 +2480,7 @@
                 // Determine if we're adding or editing
                 const isEditing = editingUserId !== null;
                 const method = isEditing ? 'PUT' : 'POST';
-                const url = isEditing ? `${window.API_BASE_URL}/api/users/${editingUserId}` : '${window.API_BASE_URL}/api/users';
+                const url = isEditing ? `${window.API_BASE_URL}/api/users/${editingUserId}` : `${window.API_BASE_URL}/api/users`;
 
                 const token = localStorage.getItem('token');
                 const response = await fetch(url, {
@@ -2650,7 +2650,7 @@
                 // Determine if we're adding or editing
                 const isEditing = editingTrialId !== null;
                 const method = isEditing ? 'PUT' : 'POST';
-                const url = isEditing ? `${window.API_BASE_URL}/api/clinical-trials/${editingTrialId}` : '${window.API_BASE_URL}/api/clinical-trials';
+                const url = isEditing ? `${window.API_BASE_URL}/api/clinical-trials/${editingTrialId}` : `${window.API_BASE_URL}/api/clinical-trials`;
 
                     const response = await fetch(url, {
                         method: method,
@@ -2852,7 +2852,7 @@
                     const isEditing = editingNewsId !== null;
                     const url = isEditing
                         ? `${window.API_BASE_URL}/api/news/${editingNewsId}`
-                        : '${window.API_BASE_URL}/api/news';
+                        : `${window.API_BASE_URL}/api/news`;
                     const method = isEditing ? 'PUT' : 'POST';
 
                     console.log(`📤 ${method} ${url} - Editing: ${isEditing}, NewsId: ${editingNewsId}`);
@@ -3429,7 +3429,7 @@
                 const isEditing = editingHospitalId !== null;
                 const url = isEditing
                     ? `${window.API_BASE_URL}/api/hospitals/${editingHospitalId}`
-                    : '${window.API_BASE_URL}/api/hospitals';
+                    : `${window.API_BASE_URL}/api/hospitals`;
                 const method = isEditing ? 'PUT' : 'POST';
 
 
@@ -4019,7 +4019,7 @@ ${endpointStatus.join('\n')}
                 const method = isEditing ? 'PUT' : 'POST';
                 const url = isEditing
                     ? `${window.API_BASE_URL}/api/training-materials/${editingTrainingMaterialId}`
-                    : '${window.API_BASE_URL}/api/training-materials';
+                    : `${window.API_BASE_URL}/api/training-materials`;
 
                 const token = localStorage.getItem('token');
                 const response = await fetch(url, {
@@ -4467,7 +4467,7 @@ ${endpointStatus.join('\n')}
                 const method = isEditing ? 'PUT' : 'POST';
                 const url = isEditing
                     ? `${window.API_BASE_URL}/api/study-protocols/${editingStudyProtocolId}`
-                    : '${window.API_BASE_URL}/api/study-protocols';
+                    : `${window.API_BASE_URL}/api/study-protocols`;
 
                 const token = localStorage.getItem('token');
                 const response = await fetch(url, {
