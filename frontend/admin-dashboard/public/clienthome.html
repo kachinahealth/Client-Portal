@@ -163,7 +163,7 @@
         
         .tab-content {
             padding: 2rem;
-            display: none;
+            display: none !important;
             background: white;
             border-radius: 0 8px 8px 8px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.08);
@@ -171,9 +171,9 @@
             border: 1px solid rgba(38, 166, 154, 0.1);
             border-top: none;
         }
-        
+
         .tab-content.active {
-            display: block;
+            display: block !important;
         }
         
         .user-table {
@@ -1051,14 +1051,14 @@
 
         <div class="tabs">
             <div class="tab-buttons">
-                <button class="tab-button active" onclick="showTab(0)">User Management</button>
-                <button class="tab-button" onclick="showTab(1)">News & Updates</button>
-                <button class="tab-button" onclick="showTab(2)">Enrollment Leaderboard</button>
-                <button class="tab-button" onclick="showTab(3)">Clinical Trials</button>
-                <button class="tab-button" onclick="showTab(4)">Training Materials</button>
-                <button class="tab-button" onclick="showTab(5)">Study Protocol</button>
-                <button class="tab-button" onclick="showTab(6)">Analytics</button>
-                <button class="tab-button" onclick="showTab(7)">Messaging</button>
+                <button class="tab-button active" onclick="console.log('Tab 0 clicked'); showTab(0)">User Management</button>
+                <button class="tab-button" onclick="console.log('Tab 1 clicked'); showTab(1)">News & Updates</button>
+                <button class="tab-button" onclick="console.log('Tab 2 clicked'); showTab(2)">Enrollment Leaderboard</button>
+                <button class="tab-button" onclick="console.log('Tab 3 clicked'); showTab(3)">Clinical Trials</button>
+                <button class="tab-button" onclick="console.log('Tab 4 clicked'); showTab(4)">Training Materials</button>
+                <button class="tab-button" onclick="console.log('Tab 5 clicked'); showTab(5)">Study Protocol</button>
+                <button class="tab-button" onclick="console.log('Tab 6 clicked'); showTab(6)">Analytics</button>
+                <button class="tab-button" onclick="console.log('Tab 7 clicked'); showTab(7)">Messaging</button>
             </div>
 
             <div class="tab-content active" id="tab0">
@@ -1505,65 +1505,6 @@
 
             <div class="tab-content" id="tab6">
                 <h3>Analytics</h3>
-                
-                <div class="analytics-header">
-                    <h4>User Engagement Analytics</h4>
-                    <button onclick="refreshAnalytics()" class="btn-primary">
-                        <i class="fas fa-sync"></i> Refresh Data
-                    </button>
-                </div>
-
-                <div class="analytics-filters">
-                    <select id="analyticsFilter" onchange="filterAnalytics()">
-                        <option value="all">All Users</option>
-                        <option value="active">Active Users (Last 7 Days)</option>
-                        <option value="inactive">Inactive Users (No Activity > 30 Days)</option>
-                    </select>
-                </div>
-
-                <div class="analytics-grid">
-                    <div class="analytics-card">
-                        <h5>Overall Engagement</h5>
-                        <div class="stat-number" id="totalAppOpens">-</div>
-                        <div class="stat-label">Total App Opens</div>
-                    </div>
-                    <div class="analytics-card">
-                        <h5>Active Users</h5>
-                        <div class="stat-number" id="activeUsers">-</div>
-                        <div class="stat-label">Users Active in Last 7 Days</div>
-                    </div>
-                </div>
-
-                <div class="analytics-table-container">
-                    <table class="analytics-table">
-                        <thead>
-                            <tr>
-                                <th>User</th>
-                                <th>Site</th>
-                                <th>Last Active</th>
-                                <th>Total App Opens</th>
-                                <th>Most Viewed Tab</th>
-                                <th>Details</th>
-                            </tr>
-                        </thead>
-                        <tbody id="analyticsTableBody">
-                            <tr><td colspan="6">Loading analytics...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- User Details Modal -->
-                <div id="userAnalyticsModal" class="modal">
-                    <div class="modal-content">
-                        <span class="close">&times;</span>
-                        <h4>User Analytics Details</h4>
-                        <div id="userAnalyticsDetails"></div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="tab-content" id="tab6">
-                <h3>Analytics</h3>
 
                 <div class="analytics-header">
                     <h4>User Engagement Analytics</h4>
@@ -1659,16 +1600,166 @@
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="tab-content" id="tab8">
-                <h3>Debug & Troubleshooting</h3>
+                <div class="analytics-filters">
+                    <select id="analyticsFilter" onchange="filterAnalytics()">
+                        <option value="all">All Users</option>
+                        <option value="active">Active Users (Last 7 Days)</option>
+                        <option value="inactive">Inactive Users (No Activity > 30 Days)</option>
+                    </select>
+                </div>
+
+                <div class="analytics-grid">
+                    <div class="analytics-card">
+                        <h5>Overall Engagement</h5>
+                        <div class="stat-number" id="totalAppOpens">-</div>
+                        <div class="stat-label">Total App Opens</div>
+                    </div>
+                    <div class="analytics-card">
+                        <h5>Active Users</h5>
+                        <div class="stat-number" id="activeUsers">-</div>
+                        <div class="stat-label">Users Active in Last 7 Days</div>
+                    </div>
+                </div>
+
+                <div class="analytics-table-container">
+                    <table class="analytics-table">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Site</th>
+                                <th>Last Active</th>
+                                <th>Total App Opens</th>
+                                <th>Most Viewed Tab</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody id="analyticsTableBody">
+                            <tr><td colspan="6">Loading analytics...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- User Details Modal -->
+                <div id="userAnalyticsModal" class="modal">
+                    <div class="modal-content">
+                        <span class="close">&times;</span>
+                        <h4>User Analytics Details</h4>
+                        <div id="userAnalyticsDetails"></div>
+                    </div>
+                </div>
+            </div>
+                <h3>Messaging</h3>
+
+                <div class="messaging-container">
+                    <div class="messaging-sidebar">
+                        <div class="messaging-header">
+                            <h4>Conversations</h4>
+                            <button class="btn-primary" onclick="composeNewMessage()">New Message</button>
+                        </div>
+                        <div class="conversations-list" id="conversationsList">
+                            <div class="loading">Loading conversations...</div>
+                        </div>
+                    </div>
+
+                    <div class="messaging-main">
+                        <div class="message-thread" id="messageThread">
+                            <div class="no-conversation">
+                                <div class="no-conversation-icon">💬</div>
+                                <h4>Select a conversation</h4>
+                                <p>Choose a conversation from the sidebar to view messages</p>
+                            </div>
+                        </div>
+
+                        <div class="message-compose" id="messageCompose">
+                            <div class="compose-header">
+                                <span id="composeRecipient">Select recipient</span>
+                                <button onclick="cancelCompose()">✕</button>
+                            </div>
+                            <div class="compose-body">
+                                <textarea id="messageInput" placeholder="Type your message..."></textarea>
+                                <div class="compose-actions">
+                                    <button onclick="sendMessage()" class="btn-primary">Send Message</button>
+                                    <button onclick="cancelCompose()">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
     <script>
         // Company-specific variables removed
         let companyInfo = null;
         let editingHospitalId = null;
         let clinicalTrials = []; // Store clinical trials data for assignment dropdown
+        let currentConversation = null;
+        let conversations = [];
+        let messages = [];
+
+        // Tab navigation function - needs to be defined before HTML uses it
+        function showTab(index) {
+            console.log('🔄 Switching to tab:', index);
+            console.log('All tab contents before:', document.querySelectorAll('.tab-content'));
+            console.log('Active tabs before:', document.querySelectorAll('.tab-content.active'));
+
+            // Hide all tab contents - FORCE hide them all first
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach((content, i) => {
+                content.classList.remove('active');
+                content.style.display = 'none'; // Force hide
+                console.log(`Tab ${i} hidden`);
+            });
+
+            // Remove active class from all tab buttons
+            const tabButtons = document.querySelectorAll('.tab-button');
+            tabButtons.forEach((button, i) => {
+                button.classList.remove('active');
+                console.log(`Button ${i} deactivated`);
+            });
+
+            // Show selected tab
+            const targetContent = tabContents[index];
+            const targetButton = tabButtons[index];
+
+            console.log('Target content:', targetContent);
+            console.log('Target button:', targetButton);
+
+            if (targetContent && targetButton) {
+                targetContent.classList.add('active');
+                targetContent.style.display = 'block'; // Force show
+                targetButton.classList.add('active');
+                console.log('✅ Successfully switched to tab:', index);
+                console.log('Active tabs after:', document.querySelectorAll('.tab-content.active'));
+            } else {
+                console.error('❌ Tab switching failed - element not found for index:', index);
+                console.log('Available tab contents:', tabContents.length);
+                console.log('Available tab buttons:', tabButtons.length);
+                console.log('Tab content IDs:', Array.from(tabContents).map(el => el.id));
+            }
+
+            // Load content when tabs are shown
+            if (index === 1) {
+                loadNewsItems(); // News & Updates tab
+                // Ensure clinical trial selector is populated for the current user role
+                setTimeout(() => {
+                    populateNewsClinicalTrialSelector();
+                }, 100);
+            } else if (index === 2) {
+                loadUsers(); // Users tab
+            } else if (index === 3) {
+                loadTrials(); // Clinical Trials tab
+            } else if (index === 4) {
+                loadTrainingMaterials(); // Training Materials tab
+            } else if (index === 5) {
+                loadStudyProtocols(); // Study Protocol tab
+            } else if (index === 6) {
+                loadAnalytics(); // Analytics tab
+            } else if (index === 7) {
+                loadMessages(); // Messaging tab
+            }
+        }
 
         // Initialize dashboard
         window.onload = async function() {
@@ -1749,17 +1840,44 @@
         };
 
         function showTab(index) {
-            // Hide all tab contents
+            console.log('🔄 Switching to tab:', index);
+            console.log('All tab contents before:', document.querySelectorAll('.tab-content'));
+            console.log('Active tabs before:', document.querySelectorAll('.tab-content.active'));
+
+            // Hide all tab contents - FORCE hide them all first
             const tabContents = document.querySelectorAll('.tab-content');
-            tabContents.forEach(content => content.classList.remove('active'));
-            
+            tabContents.forEach((content, i) => {
+                content.classList.remove('active');
+                content.style.display = 'none'; // Force hide
+                console.log(`Tab ${i} hidden`);
+            });
+
             // Remove active class from all tab buttons
             const tabButtons = document.querySelectorAll('.tab-button');
-            tabButtons.forEach(button => button.classList.remove('active'));
-            
+            tabButtons.forEach((button, i) => {
+                button.classList.remove('active');
+                console.log(`Button ${i} deactivated`);
+            });
+
             // Show selected tab
-            tabContents[index].classList.add('active');
-            tabButtons[index].classList.add('active');
+            const targetContent = tabContents[index];
+            const targetButton = tabButtons[index];
+
+            console.log('Target content:', targetContent);
+            console.log('Target button:', targetButton);
+
+            if (targetContent && targetButton) {
+                targetContent.classList.add('active');
+                targetContent.style.display = 'block'; // Force show
+                targetButton.classList.add('active');
+                console.log('✅ Successfully switched to tab:', index);
+                console.log('Active tabs after:', document.querySelectorAll('.tab-content.active'));
+            } else {
+                console.error('❌ Tab switching failed - element not found for index:', index);
+                console.log('Available tab contents:', tabContents.length);
+                console.log('Available tab buttons:', tabButtons.length);
+                console.log('Tab content IDs:', Array.from(tabContents).map(el => el.id));
+            }
 
             // Load content when tabs are shown
             if (index === 1) {
@@ -1778,6 +1896,8 @@
                 loadStudyProtocols(); // Study Protocol tab
             } else if (index === 6) {
                 loadAnalytics(); // Analytics tab
+            } else if (index === 7) {
+                loadMessages(); // Messaging tab
             } else if (index === 7) {
                 loadMessages(); // Messaging tab
             }
