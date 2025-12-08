@@ -19,69 +19,6 @@
             window.location.href = '/';
         }
 
-        // Tab switching function - defined early so it's available when HTML elements call it
-        function showTab(index) {
-            console.log('🔄 showTab() called with index:', index);
-            console.log('All tab contents before:', document.querySelectorAll('.tab-content'));
-            console.log('Active tabs before:', document.querySelectorAll('.tab-content.active'));
-
-            // Hide all tab contents - remove active class from all
-            const tabContents = document.querySelectorAll('.tab-content');
-            tabContents.forEach((content, i) => {
-                content.classList.remove('active');
-                console.log(`Tab ${i} hidden`);
-            });
-
-            // Remove active class from all tab buttons
-            const tabButtons = document.querySelectorAll('.tab-button');
-            tabButtons.forEach((button, i) => {
-                button.classList.remove('active');
-                console.log(`Button ${i} deactivated`);
-            });
-
-            // Show selected tab
-            const targetContent = tabContents[index];
-            const targetButton = tabButtons[index];
-
-            console.log('Target content:', targetContent);
-            console.log('Target button:', targetButton);
-
-            if (targetContent && targetButton) {
-                targetContent.classList.add('active');
-                targetButton.classList.add('active');
-                console.log('✅ Successfully switched to tab:', index);
-                console.log('Active tabs after:', document.querySelectorAll('.tab-content.active'));
-            } else {
-                console.error('❌ Tab switching failed - element not found for index:', index);
-                console.log('Available tab contents:', tabContents.length);
-                console.log('Available tab buttons:', tabButtons.length);
-                console.log('Tab content IDs:', Array.from(tabContents).map(el => el.id));
-            }
-
-            // Load content when tabs are shown
-            if (index === 0) {
-                loadUsers(); // User Management tab
-            } else if (index === 1) {
-                loadNewsItems(); // News & Updates tab
-                // Ensure clinical trial selector is populated for the current user role
-                setTimeout(() => {
-                    populateNewsClinicalTrialSelector();
-                }, 100);
-            } else if (index === 2) {
-                loadLeaderboard(); // Enrollment Leaderboard tab
-            } else if (index === 3) {
-                loadClinicalTrials(); // Clinical Trials tab
-            } else if (index === 4) {
-                loadPDFDocuments(); // Training Materials tab
-            } else if (index === 5) {
-                loadPDFDocuments(); // Study Protocol tab
-            } else if (index === 6) {
-                loadAnalytics(); // Analytics tab
-            } else if (index === 7) {
-                loadMessages(); // Messaging tab
-            }
-        }
-
         // Compose new message function - defined early so it's available when HTML elements call it
         function composeNewMessage() {
             // Show recipient selection modal
@@ -92,7 +29,7 @@
                     <h3>New Message</h3>
                     <select id="recipientSelect" style="width: 100%; padding: 0.75rem; margin-bottom: 1rem; border: 1px solid #ddd; border-radius: 4px;">
                         <option value="">Select recipient...</option>
-                        ${conversations.map(conv => `<option value="${conv.id}">${conv.name}</option>`).join('')}
+                        ${window.conversations.map(conv => `<option value="${conv.id}">${conv.name}</option>`).join('')}
                     </select>
                     <textarea id="newMessageText" placeholder="Type your message..." rows="4" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 1rem;"></textarea>
                     <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
@@ -103,6 +40,8 @@
             `;
             document.body.appendChild(modal);
         }
+
+
     </script>
     <style>
         * {
@@ -1788,7 +1727,7 @@
         let editingHospitalId = null;
         let clinicalTrials = []; // Store clinical trials data for assignment dropdown
         let currentConversation = null;
-        let conversations = [];
+        window.conversations = [];
         let messages = [];
 
 
@@ -4933,7 +4872,6 @@ ${endpointStatus.join('\n')}
 
         // Messaging Functions
         let currentConversation = null;
-        let conversations = [];
         let messages = [];
 
         async function loadMessages() {
@@ -4946,7 +4884,7 @@ ${endpointStatus.join('\n')}
                 });
 
                 if (conversationsResponse.ok) {
-                    conversations = await conversationsResponse.json();
+                    window.conversations = await conversationsResponse.json();
                     renderConversations();
                 } else {
                     console.error('Failed to load conversations');
@@ -4961,12 +4899,12 @@ ${endpointStatus.join('\n')}
         function renderConversations() {
             const conversationsList = document.getElementById('conversationsList');
 
-            if (conversations.length === 0) {
+            if (window.conversations.length === 0) {
                 conversationsList.innerHTML = '<div class="no-conversations">No conversations yet</div>';
                 return;
             }
 
-            conversationsList.innerHTML = conversations.map(conv => `
+            conversationsList.innerHTML = window.conversations.map(conv => `
                 <div class="conversation-item ${currentConversation && currentConversation.id === conv.id ? 'active' : ''}"
                      onclick="selectConversation('${conv.id}', '${conv.name}', '${conv.lastMessage || ''}')">
                     <div class="conversation-name">${conv.name}</div>
@@ -5108,6 +5046,69 @@ ${endpointStatus.join('\n')}
             } catch (error) {
                 console.error('Error sending message:', error);
                 alert('Error sending message');
+            }
+        }
+
+        // Tab switching function - defined after all load functions so they're available
+        function showTab(index) {
+            console.log('🔄 showTab() called with index:', index);
+            console.log('All tab contents before:', document.querySelectorAll('.tab-content'));
+            console.log('Active tabs before:', document.querySelectorAll('.tab-content.active'));
+
+            // Hide all tab contents - remove active class from all
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach((content, i) => {
+                content.classList.remove('active');
+                console.log(`Tab ${i} hidden`);
+            });
+
+            // Remove active class from all tab buttons
+            const tabButtons = document.querySelectorAll('.tab-button');
+            tabButtons.forEach((button, i) => {
+                button.classList.remove('active');
+                console.log(`Button ${i} deactivated`);
+            });
+
+            // Show selected tab
+            const targetContent = tabContents[index];
+            const targetButton = tabButtons[index];
+
+            console.log('Target content:', targetContent);
+            console.log('Target button:', targetButton);
+
+            if (targetContent && targetButton) {
+                targetContent.classList.add('active');
+                targetButton.classList.add('active');
+                console.log('✅ Successfully switched to tab:', index);
+                console.log('Active tabs after:', document.querySelectorAll('.tab-content.active'));
+            } else {
+                console.error('❌ Tab switching failed - element not found for index:', index);
+                console.log('Available tab contents:', tabContents.length);
+                console.log('Available tab buttons:', tabButtons.length);
+                console.log('Tab content IDs:', Array.from(tabContents).map(el => el.id));
+            }
+
+            // Load content when tabs are shown
+            if (index === 0) {
+                loadUsers(); // User Management tab
+            } else if (index === 1) {
+                loadNewsItems(); // News & Updates tab
+                // Ensure clinical trial selector is populated for the current user role
+                setTimeout(() => {
+                    populateNewsClinicalTrialSelector();
+                }, 100);
+            } else if (index === 2) {
+                loadLeaderboard(); // Enrollment Leaderboard tab
+            } else if (index === 3) {
+                loadClinicalTrials(); // Clinical Trials tab
+            } else if (index === 4) {
+                loadPDFDocuments(); // Training Materials tab
+            } else if (index === 5) {
+                loadPDFDocuments(); // Study Protocol tab
+            } else if (index === 6) {
+                loadAnalytics(); // Analytics tab
+            } else if (index === 7) {
+                loadMessages(); // Messaging tab
             }
         }
     </script>
