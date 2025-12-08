@@ -2377,27 +2377,38 @@ app.delete('/api/news/:id', authenticateToken, async (req, res) => {
 // Get all hospitals (temporarily unauthenticated for testing Supabase connection)
 app.get('/api/hospitals', async (req, res) => {
   try {
-    const { data, error } = await supabase
-      .from('hospitals')
-      .select('*')
-      .order('randomized_patients', { ascending: false });
-
-    // Transform the data to match frontend expectations
-    // Handle different column names that might exist in Supabase
     let transformedHospitals = [];
-    if (data && data.length > 0) {
-      console.log('Supabase returned data:', data.length, 'hospitals');
-      transformedHospitals = data.map(hospital => ({
-        id: hospital.id,
-        name: hospital.hospital_name || hospital.name || hospital.hospitalName,
-        location: hospital.location,
-        principal_investigator: hospital.principal_investigator || hospital.principalInvestigator,
-        consented_patients: hospital.consented_patients || hospital.consentedPatients,
-        randomized_patients: hospital.randomized_patients || hospital.randomizedPatients,
-        consent_rate: hospital.consented_rate || hospital.consentRate,
-        created_at: hospital.created_at
-      }));
+
+    // Check if Supabase is available (has environment variables)
+    if (supabase && process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY) {
+      const { data, error } = await supabase
+        .from('hospitals')
+        .select('*')
+        .order('randomized', { ascending: false });
+
+      if (error) {
+        console.error('Supabase error:', error);
+      } else if (data && data.length > 0) {
+        console.log('Supabase returned data:', data.length, 'hospitals');
+        transformedHospitals = data.map(hospital => ({
+          id: hospital.id,
+          name: hospital.name,
+          location: hospital.location,
+          principal_investigator: hospital.principal_investigator || 'Not assigned',
+          consented_patients: hospital.consented || 0,
+          randomized_patients: hospital.randomized || 0,
+          consent_rate: hospital.consented > 0 ? Math.round((hospital.randomized / hospital.consented) * 100) : 0,
+          created_at: hospital.created_at
+        }));
+      } else {
+        console.log('No data from Supabase, using mock data');
+      }
     } else {
+      console.log('Supabase not configured, using mock data');
+    }
+
+    // If no real data, use mock data
+    if (transformedHospitals.length === 0) {
       console.log('No data from Supabase, using mock data for testing');
       transformedHospitals = [
         {
@@ -2435,8 +2446,8 @@ app.get('/api/hospitals', async (req, res) => {
 
     // Calculate summary statistics
     const summary = {
-      totalConsented: transformedHospitals.reduce((sum, hospital) => sum + (hospital.consented_patients || 0), 0),
-      totalRandomized: transformedHospitals.reduce((sum, hospital) => sum + (hospital.randomized_patients || 0), 0),
+      totalConsented: transformedHospitals.reduce((sum, hospital) => sum + hospital.consented_patients, 0),
+      totalRandomized: transformedHospitals.reduce((sum, hospital) => sum + hospital.randomized_patients, 0),
       totalHospitals: transformedHospitals.length
     };
 
