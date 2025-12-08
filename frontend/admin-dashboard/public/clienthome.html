@@ -44,14 +44,6 @@
         // Tab switching function - defined early so it's available when HTML elements call it
         function showTab(index) {
             console.log('🔄 showTab() called with index:', index);
-
-            // Check if load functions are available, if not wait for scripts to load
-            if (typeof loadUsers !== 'function') {
-                console.log('⏳ Load functions not ready yet, waiting...');
-                setTimeout(() => showTab(index), 100);
-                return;
-            }
-
             console.log('All tab contents before:', document.querySelectorAll('.tab-content'));
             console.log('Active tabs before:', document.querySelectorAll('.tab-content.active'));
 
