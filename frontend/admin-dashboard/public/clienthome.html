@@ -25,11 +25,10 @@
             console.log('All tab contents before:', document.querySelectorAll('.tab-content'));
             console.log('Active tabs before:', document.querySelectorAll('.tab-content.active'));
 
-            // Hide all tab contents - FORCE hide them all first
+            // Hide all tab contents - remove active class from all
             const tabContents = document.querySelectorAll('.tab-content');
             tabContents.forEach((content, i) => {
                 content.classList.remove('active');
-                content.style.display = 'none'; // Force hide
                 console.log(`Tab ${i} hidden`);
             });
 
@@ -49,7 +48,6 @@
 
             if (targetContent && targetButton) {
                 targetContent.classList.add('active');
-                targetContent.style.display = 'block'; // Force show
                 targetButton.classList.add('active');
                 console.log('✅ Successfully switched to tab:', index);
                 console.log('Active tabs after:', document.querySelectorAll('.tab-content.active'));
@@ -1854,6 +1852,27 @@
             const userProfile = await fetchUserProfile();
             initializeTabs();
 
+            // Ensure proper tab display after initialization
+            setTimeout(() => {
+                // Force hide all tabs except the active one
+                const allTabs = document.querySelectorAll('.tab-content');
+                const activeTabs = document.querySelectorAll('.tab-content.active');
+
+                allTabs.forEach(tab => {
+                    if (!tab.classList.contains('active')) {
+                        tab.style.display = 'none';
+                    } else {
+                        tab.style.display = 'block';
+                    }
+                });
+
+                console.log('Final tab display state:', {
+                    totalTabs: allTabs.length,
+                    activeTabs: activeTabs.length,
+                    visibleTabs: document.querySelectorAll('.tab-content[style*="display: block"]').length
+                });
+            }, 100);
+
             // Load clinical trials for dropdowns - try even if user profile fetch failed
             if (token) {
                 console.log('🎯 About to call loadClinicalTrials()');
@@ -2092,10 +2111,8 @@
                     if (content) {
                         if (visibleTabIndex === 0) {
                             content.classList.add('active');
-                            content.style.display = 'block'; // Force show
                         } else {
                             content.classList.remove('active');
-                            content.style.display = 'none'; // Force hide
                         }
                     }
 
@@ -2105,12 +2122,12 @@
                     const content = document.getElementById(`tab${tab.index}`);
                     if (content) {
                         content.classList.remove('active');
-                        content.style.display = 'none'; // Force hide
                     }
                 }
             });
 
             console.log(`📋 Tabs initialized for role: ${currentUserRole}`);
+            console.log('Active tabs after initialization:', document.querySelectorAll('.tab-content.active'));
         }
 
         async function loadUsers() {
