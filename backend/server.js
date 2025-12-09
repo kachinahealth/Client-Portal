@@ -4520,21 +4520,25 @@ app.use((error, req, res, next) => {
 
 // Messaging Routes
 // Get conversations for the current user
-app.get('/api/messages/conversations', authenticateToken, async (req, res) => {
+app.get('/api/messages/conversations', authenticateToken, requireSupabaseAdmin, async (req, res) => {
   try {
+    // Use supabaseAdmin to bypass RLS (service role key required)
+    // RLS policies check auth.uid() which isn't available with our custom JWT
+    
     // Get all users that have exchanged messages with the current user
-    const { data: sentMessages, error: sentError } = await supabase
+    const { data: sentMessages, error: sentError } = await supabaseAdmin
       .from('messages')
       .select('recipient_id, content, created_at')
       .eq('sender_id', req.user.userId);
 
-    const { data: receivedMessages, error: receivedError } = await supabase
+    const { data: receivedMessages, error: receivedError } = await supabaseAdmin
       .from('messages')
       .select('sender_id, content, created_at')
       .eq('recipient_id', req.user.userId);
 
     if (sentError || receivedError) {
-      return res.status(500).json({ error: 'Failed to load conversations' });
+      console.error('Messages query error:', sentError || receivedError);
+      return res.status(500).json({ error: 'Failed to load conversations', details: sentError?.message || receivedError?.message });
     }
 
     // Get user names for conversation partners
@@ -4542,7 +4546,7 @@ app.get('/api/messages/conversations', authenticateToken, async (req, res) => {
     receivedMessages.forEach(msg => userIds.add(msg.sender_id));
     sentMessages.forEach(msg => userIds.add(msg.recipient_id));
 
-    const { data: userProfiles, error: profilesError } = await supabase
+    const { data: userProfiles, error: profilesError } = await supabaseAdmin
       .from('profiles')
       .select('id, display_name')
       .in('id', Array.from(userIds));
@@ -4597,12 +4601,13 @@ app.get('/api/messages/conversations', authenticateToken, async (req, res) => {
 });
 
 // Get messages for a specific conversation
-app.get('/api/messages/:conversationId', authenticateToken, async (req, res) => {
+app.get('/api/messages/:conversationId', authenticateToken, requireSupabaseAdmin, async (req, res) => {
   try {
     const { conversationId } = req.params;
 
+    // Use supabaseAdmin to bypass RLS
     // Get all messages between current user and conversation partner
-    const { data: messages, error } = await supabase
+    const { data: messages, error } = await supabaseAdmin
       .from('messages')
       .select('*')
       .or(`and(sender_id.eq.${req.user.userId},recipient_id.eq.${conversationId}),and(sender_id.eq.${conversationId},recipient_id.eq.${req.user.userId})`)
@@ -4610,7 +4615,7 @@ app.get('/api/messages/:conversationId', authenticateToken, async (req, res) => 
 
     if (error) {
       console.error('Error loading messages:', error);
-      return res.status(500).json({ error: 'Failed to load messages' });
+      return res.status(500).json({ error: 'Failed to load messages', details: error.message });
     }
 
     res.json(messages);
@@ -4622,7 +4627,7 @@ app.get('/api/messages/:conversationId', authenticateToken, async (req, res) => 
 });
 
 // Send a new message
-app.post('/api/messages', authenticateToken, async (req, res) => {
+app.post('/api/messages', authenticateToken, requireSupabaseAdmin, async (req, res) => {
   try {
     const { recipient_id, message } = req.body;
 
@@ -4630,8 +4635,9 @@ app.post('/api/messages', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'Recipient ID and message are required' });
     }
 
+    // Use supabaseAdmin to bypass RLS
     // Insert the message
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('messages')
       .insert([{
         sender_id: req.user.userId,
@@ -4644,7 +4650,7 @@ app.post('/api/messages', authenticateToken, async (req, res) => {
 
     if (error) {
       console.error('Error sending message:', error);
-      return res.status(500).json({ error: 'Failed to send message' });
+      return res.status(500).json({ error: 'Failed to send message', details: error.message });
     }
 
     res.json({ success: true, message: data });
