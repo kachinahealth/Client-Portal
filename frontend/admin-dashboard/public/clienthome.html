@@ -138,17 +138,48 @@
             });
 
             // Add click event listeners to "New Message" buttons
-            const newMessageButtons = document.querySelectorAll('button[onclick*="composeNewMessage"]');
+            const newMessageButtons = document.querySelectorAll('button');
             newMessageButtons.forEach(button => {
-                button.addEventListener('click', function(e) {
-                    e.preventDefault(); // Prevent any default onclick behavior
-                    if (typeof composeNewMessage === 'function') {
-                        composeNewMessage();
+                if (button.textContent.trim() === 'New Message') {
+                    button.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        console.log('New Message button clicked');
+                        if (typeof composeNewMessage === 'function') {
+                            composeNewMessage();
+                        } else {
+                            console.error('composeNewMessage function not found');
+                        }
+                    });
+                }
+            });
+
+            // Add click event listener to "Add Study Protocol" button
+            const protocolSubmitBtn = document.getElementById('protocolSubmitBtn');
+            if (protocolSubmitBtn) {
+                protocolSubmitBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('Add Study Protocol button clicked');
+                    if (typeof addStudyProtocol === 'function') {
+                        addStudyProtocol();
+                    } else {
+                        console.error('addStudyProtocol function not found');
                     }
                 });
-                // Remove the onclick attribute to prevent conflicts
-                button.removeAttribute('onclick');
-            });
+            }
+
+            // Add click event listener to "Add Training Material" button
+            const trainingSubmitBtn = document.getElementById('trainingSubmitBtn');
+            if (trainingSubmitBtn) {
+                trainingSubmitBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('Add Training Material button clicked');
+                    if (typeof addTrainingMaterial === 'function') {
+                        addTrainingMaterial();
+                    } else {
+                        console.error('addTrainingMaterial function not found');
+                    }
+                });
+            }
         });
 
 
@@ -1556,7 +1587,7 @@
                         </div>
                         
                     <div class="form-actions">
-                        <button class="btn-primary" onclick="addTrainingMaterial()" id="trainingSubmitBtn">Add Training Material</button>
+                        <button class="btn-primary" id="trainingSubmitBtn">Add Training Material</button>
                         <button class="btn" onclick="cancelTrainingMaterialEdit()" id="trainingCancelBtn" style="display: none;">Cancel Edit</button>
                     </div>
                 </div>
@@ -1634,7 +1665,7 @@
                         </div>
                         
                     <div class="form-actions">
-                        <button class="btn-primary" onclick="addStudyProtocol()" id="protocolSubmitBtn">Add Study Protocol</button>
+                        <button class="btn-primary" id="protocolSubmitBtn">Add Study Protocol</button>
                         <button class="btn" onclick="cancelStudyProtocolEdit()" id="protocolCancelBtn" style="display: none;">Cancel Edit</button>
                     </div>
                 </div>
