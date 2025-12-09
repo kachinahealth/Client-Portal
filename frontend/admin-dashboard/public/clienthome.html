@@ -44,12 +44,19 @@
             // Show recipient selection modal
             const modal = document.createElement('div');
             modal.className = 'new-message-overlay';
+
+            // Check if conversations are loaded
+            const conversations = window.conversations || [];
+            const recipientOptions = conversations.length > 0
+                ? conversations.map(conv => `<option value="${conv.id}">${conv.name}</option>`).join('')
+                : '<option value="" disabled>Loading recipients...</option>';
+
             modal.innerHTML = `
                 <div class="new-message-modal">
                     <h3>New Message</h3>
                     <select id="recipientSelect" style="width: 100%; padding: 0.75rem; margin-bottom: 1rem; border: 1px solid #ddd; border-radius: 4px;">
                         <option value="">Select recipient...</option>
-                        ${window.conversations.map(conv => `<option value="${conv.id}">${conv.name}</option>`).join('')}
+                        ${recipientOptions}
                     </select>
                     <textarea id="newMessageText" placeholder="Type your message..." rows="4" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 1rem;"></textarea>
                     <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
@@ -159,10 +166,19 @@
                 protocolSubmitBtn.addEventListener('click', function(e) {
                     e.preventDefault();
                     console.log('Add Study Protocol button clicked');
-                    if (typeof addStudyProtocol === 'function') {
-                        addStudyProtocol();
-                    } else {
-                        console.error('addStudyProtocol function not found');
+                    console.log('addStudyProtocol exists:', typeof window.addStudyProtocol);
+                    console.log('addStudyProtocol in global scope:', typeof addStudyProtocol);
+
+                    // Try to call the function directly
+                    try {
+                        if (typeof addStudyProtocol === 'function') {
+                            addStudyProtocol();
+                        } else {
+                            console.error('addStudyProtocol is not a function:', typeof addStudyProtocol);
+                            console.error('Available functions:', Object.keys(window).filter(key => typeof window[key] === 'function' && key.includes('Protocol')));
+                        }
+                    } catch (error) {
+                        console.error('Error calling addStudyProtocol:', error);
                     }
                 });
             }
@@ -177,6 +193,34 @@
                         addTrainingMaterial();
                     } else {
                         console.error('addTrainingMaterial function not found');
+                    }
+                });
+            }
+
+            // Add click event listener to "Add Trial" button
+            const saveTrialBtn = document.getElementById('saveTrialBtn');
+            if (saveTrialBtn) {
+                saveTrialBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('Add Trial button clicked');
+                    if (typeof saveTrial === 'function') {
+                        saveTrial();
+                    } else {
+                        console.error('saveTrial function not found');
+                    }
+                });
+            }
+
+            // Add click event listener to "Add Hospital" button
+            const saveHospitalBtn = document.getElementById('saveHospitalBtn');
+            if (saveHospitalBtn) {
+                saveHospitalBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('Add Hospital button clicked');
+                    if (typeof saveHospital === 'function') {
+                        saveHospital();
+                    } else {
+                        console.error('saveHospital function not found');
                     }
                 });
             }
@@ -1438,7 +1482,7 @@
                         <input type="number" id="consentRate" placeholder="0" min="0" step="0.1">
                     </div>
                     <div class="form-actions">
-                        <button class="btn-primary" onclick="saveHospital()" id="saveHospitalBtn">Add Hospital</button>
+                        <button class="btn-primary" id="saveHospitalBtn">Add Hospital</button>
                         <button class="btn" onclick="cancelEdit()" id="cancelEditBtn" style="display: none;">Cancel Edit</button>
                     </div>
                 </div>
@@ -1502,7 +1546,7 @@
                         </div>
                     </div>
                     <div class="form-actions">
-                        <button class="btn-primary" onclick="saveTrial()" id="saveTrialBtn">Add Trial</button>
+                        <button class="btn-primary" id="saveTrialBtn">Add Trial</button>
                         <button class="btn" onclick="cancelTrialEdit()" id="cancelTrialEditBtn" style="display: none;">Cancel Edit</button>
                     </div>
                 </div>
