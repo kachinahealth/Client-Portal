@@ -7,6 +7,7 @@
     <script>
         // API URL configuration for different environments
         // IMPORTANT: Update RENDER_BACKEND_URL with your actual Render backend URL
+        // This should be your backend service URL from Render dashboard
         const RENDER_BACKEND_URL = 'https://client-backend-and-mobile-app.onrender.com';
         
         window.API_BASE_URL = (function() {
@@ -19,7 +20,7 @@
             
             // Production - use the configured Render backend URL
             // Make sure to update RENDER_BACKEND_URL above with your actual backend URL
-            if (RENDER_BACKEND_URL && RENDER_BACKEND_URL !== 'https://YOUR-BACKEND-SERVICE.onrender.com') {
+            if (RENDER_BACKEND_URL && RENDER_BACKEND_URL !== 'https://client-backend-and-mobile-app.onrender.com') {
                 return RENDER_BACKEND_URL;
             }
             
