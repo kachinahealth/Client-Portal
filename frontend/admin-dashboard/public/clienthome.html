@@ -159,31 +159,25 @@
                     });
                 }
             });
+        });
 
-            // Add click event listener to "Add Study Protocol" button
+        // Attach button event listeners after all functions are defined
+        function attachButtonListeners() {
+            // Add Study Protocol button
             const protocolSubmitBtn = document.getElementById('protocolSubmitBtn');
             if (protocolSubmitBtn) {
                 protocolSubmitBtn.addEventListener('click', function(e) {
                     e.preventDefault();
                     console.log('Add Study Protocol button clicked');
-                    console.log('addStudyProtocol exists:', typeof window.addStudyProtocol);
-                    console.log('addStudyProtocol in global scope:', typeof addStudyProtocol);
-
-                    // Try to call the function directly
-                    try {
-                        if (typeof addStudyProtocol === 'function') {
-                            addStudyProtocol();
-                        } else {
-                            console.error('addStudyProtocol is not a function:', typeof addStudyProtocol);
-                            console.error('Available functions:', Object.keys(window).filter(key => typeof window[key] === 'function' && key.includes('Protocol')));
-                        }
-                    } catch (error) {
-                        console.error('Error calling addStudyProtocol:', error);
+                    if (typeof addStudyProtocol === 'function') {
+                        addStudyProtocol();
+                    } else {
+                        console.error('addStudyProtocol function not found');
                     }
                 });
             }
 
-            // Add click event listener to "Add Training Material" button
+            // Add Training Material button
             const trainingSubmitBtn = document.getElementById('trainingSubmitBtn');
             if (trainingSubmitBtn) {
                 trainingSubmitBtn.addEventListener('click', function(e) {
@@ -197,7 +191,7 @@
                 });
             }
 
-            // Add click event listener to "Add Trial" button
+            // Add Trial button
             const saveTrialBtn = document.getElementById('saveTrialBtn');
             if (saveTrialBtn) {
                 saveTrialBtn.addEventListener('click', function(e) {
@@ -211,7 +205,7 @@
                 });
             }
 
-            // Add click event listener to "Add Hospital" button
+            // Add Hospital button
             const saveHospitalBtn = document.getElementById('saveHospitalBtn');
             if (saveHospitalBtn) {
                 saveHospitalBtn.addEventListener('click', function(e) {
@@ -224,7 +218,10 @@
                     }
                 });
             }
-        });
+        }
+
+        // Call attachButtonListeners after a short delay to ensure all functions are loaded
+        setTimeout(attachButtonListeners, 100);
 
 
 
@@ -1834,9 +1831,25 @@
         // Initialize dashboard
         window.onload = async function() {
             console.log('🚀 Page loaded, checking authentication...');
+            console.log('Current URL:', window.location.href);
+
+            // Check for logout parameter to force token clearing
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('logout')) {
+                console.log('🔓 Logout requested, clearing tokens...');
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = '/index.html';
+                return;
+            }
+
+            // Always require authentication for clienthome.html
+            console.log('📍 Authentication required for client portal');
 
             // 🔐 AUTHENTICATION CHECK - Redirect to login if not authenticated
             const token = localStorage.getItem('token');
+            console.log('Token check:', token ? 'Token exists' : 'No token found');
+
             if (!token) {
                 console.log('🔒 No authentication token found, redirecting to login...');
                 window.location.href = '/index.html';
