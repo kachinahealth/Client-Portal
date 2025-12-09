@@ -44,6 +44,52 @@ Comprehensive Express.js backend for the KachinaHealth client management portal 
    npm run dev
    ```
 
+## 🚀 Render Deployment
+
+### Backend Environment Variables (REQUIRED)
+
+When deploying to Render, you **MUST** set these environment variables in your Render service settings:
+
+| Variable | Description | Where to find it |
+|----------|-------------|------------------|
+| `SUPABASE_URL` | Your Supabase project URL | Supabase Dashboard → Settings → API → Project URL |
+| `SUPABASE_ANON_KEY` | Supabase anonymous/public key | Supabase Dashboard → Settings → API → anon public key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (for admin ops) | Supabase Dashboard → Settings → API → service_role secret |
+| `JWT_SECRET` | Secret key for JWT signing | Generate a secure random string (32+ characters) |
+| `NODE_ENV` | Set to `production` | `production` |
+
+### Frontend Configuration (CRITICAL)
+
+After deploying your backend to Render, you **MUST** update the frontend with your backend URL:
+
+1. Open `frontend/admin-dashboard/public/index.html`
+2. Open `frontend/admin-dashboard/public/clienthome.html`
+3. Find this line at the top of each file:
+   ```javascript
+   const RENDER_BACKEND_URL = 'https://YOUR-BACKEND-SERVICE.onrender.com';
+   ```
+4. Replace `YOUR-BACKEND-SERVICE` with your actual Render backend service name
+
+### Debugging Connection Issues
+
+Use these endpoints to debug connectivity:
+
+- **Health Check**: `GET /health` - Shows environment variable status and database connectivity
+- **Debug Connection**: `GET /api/debug/connection` - Detailed connectivity diagnostics
+
+Example:
+```bash
+curl https://your-backend.onrender.com/health
+curl https://your-backend.onrender.com/api/debug/connection
+```
+
+### Common Issues
+
+1. **"Database service unavailable"**: Missing Supabase environment variables in Render
+2. **"Connection error" on login**: Frontend `RENDER_BACKEND_URL` not configured
+3. **"Invalid credentials"**: User doesn't exist in Supabase Auth or wrong password
+4. **CORS errors**: Backend is not running or URL is incorrect
+
 ## Complete API Endpoints
 
 ### 🔐 Authentication

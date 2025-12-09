@@ -67,6 +67,32 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
+// Middleware to check if Supabase is configured
+const requireSupabase = (req, res, next) => {
+  if (!supabase) {
+    console.error('Supabase client not configured - missing environment variables');
+    return res.status(503).json({
+      success: false,
+      message: 'Database service unavailable. Please check server configuration.',
+      error: 'SUPABASE_URL and SUPABASE_ANON_KEY environment variables are required'
+    });
+  }
+  next();
+};
+
+// Middleware to check if Supabase Admin is configured  
+const requireSupabaseAdmin = (req, res, next) => {
+  if (!supabaseAdmin) {
+    console.error('Supabase Admin client not configured - missing SUPABASE_SERVICE_ROLE_KEY');
+    return res.status(503).json({
+      success: false,
+      message: 'Admin operations not available. Please check server configuration.',
+      error: 'SUPABASE_SERVICE_ROLE_KEY environment variable is required'
+    });
+  }
+  next();
+};
+
 // Basic root endpoint
 app.get('/', (req, res) => {
   res.json({
@@ -76,12 +102,44 @@ app.get('/', (req, res) => {
   });
 });
 
-// Health check endpoint
-app.get('/health', (req, res) => {
+// Health check endpoint with database connectivity status
+app.get('/health', async (req, res) => {
+  let dbStatus = 'not_configured';
+  let dbError = null;
+  
+  // Check if Supabase is configured
+  if (supabase) {
+    try {
+      // Try a simple query to verify database connectivity
+      const { data, error } = await supabase.from('profiles').select('id').limit(1);
+      if (error) {
+        dbStatus = 'error';
+        dbError = error.message;
+      } else {
+        dbStatus = 'connected';
+      }
+    } catch (err) {
+      dbStatus = 'error';
+      dbError = err.message;
+    }
+  }
+  
   res.json({
     status: 'OK',
     timestamp: new Date().toISOString(),
-    uptime: process.uptime()
+    uptime: process.uptime(),
+    database: {
+      status: dbStatus,
+      error: dbError,
+      supabase_configured: !!supabase,
+      supabase_admin_configured: !!supabaseAdmin
+    },
+    environment: {
+      has_supabase_url: !!process.env.SUPABASE_URL,
+      has_supabase_anon_key: !!process.env.SUPABASE_ANON_KEY,
+      has_supabase_service_key: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+      has_jwt_secret: !!process.env.JWT_SECRET
+    }
   });
 });
 
@@ -93,6 +151,59 @@ app.get('/test', (req, res) => {
   });
 });
 
+// Debug endpoint to check database connectivity (useful for troubleshooting)
+app.get('/api/debug/connection', async (req, res) => {
+  const results = {
+    timestamp: new Date().toISOString(),
+    server: 'running',
+    environment: {
+      nodeEnv: process.env.NODE_ENV || 'development',
+      port: PORT,
+      hasSupabaseUrl: !!process.env.SUPABASE_URL,
+      hasSupabaseAnonKey: !!process.env.SUPABASE_ANON_KEY,
+      hasSupabaseServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+      hasJwtSecret: !!process.env.JWT_SECRET
+    },
+    clients: {
+      supabaseInitialized: !!supabase,
+      supabaseAdminInitialized: !!supabaseAdmin
+    },
+    database: {
+      status: 'unknown',
+      error: null
+    }
+  };
+
+  if (supabase) {
+    try {
+      // Test a simple query
+      const startTime = Date.now();
+      const { data, error } = await supabase.from('profiles').select('id').limit(1);
+      const responseTime = Date.now() - startTime;
+      
+      if (error) {
+        results.database.status = 'error';
+        results.database.error = error.message;
+        results.database.hint = error.hint || null;
+      } else {
+        results.database.status = 'connected';
+        results.database.responseTimeMs = responseTime;
+        results.database.testQuerySuccess = true;
+      }
+    } catch (err) {
+      results.database.status = 'error';
+      results.database.error = err.message;
+    }
+  } else {
+    results.database.status = 'not_configured';
+    results.database.error = 'Supabase client not initialized - missing SUPABASE_URL or SUPABASE_ANON_KEY';
+  }
+
+  // Set appropriate status code
+  const statusCode = results.database.status === 'connected' ? 200 : 503;
+  res.status(statusCode).json(results);
+});
+
 
 // User login endpoint
 app.post('/api/auth/login', async (req, res) => {
@@ -100,6 +211,16 @@ app.post('/api/auth/login', async (req, res) => {
 
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password are required' });
+  }
+
+  // Check if Supabase is configured
+  if (!supabase) {
+    console.error('Supabase client not configured - missing environment variables');
+    return res.status(503).json({
+      success: false,
+      message: 'Database service unavailable. Please check server configuration.',
+      error: 'Supabase not configured'
+    });
   }
 
   try {
@@ -151,7 +272,7 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 // User registration endpoint (optional)
-app.post('/api/auth/register', async (req, res) => {
+app.post('/api/auth/register', requireSupabase, async (req, res) => {
   const { email, password, full_name } = req.body;
 
   if (!email || !password) {
@@ -193,7 +314,7 @@ app.post('/api/auth/register', async (req, res) => {
 });
 
 // Logout endpoint
-app.post('/api/auth/logout', authenticateToken, async (req, res) => {
+app.post('/api/auth/logout', authenticateToken, requireSupabase, async (req, res) => {
   try {
     const { error } = await supabase.auth.signOut();
 
@@ -227,7 +348,7 @@ app.get('/api/auth/verify', authenticateToken, (req, res) => {
 });
 
 // Get user profile with organization and role information
-app.get('/api/user/profile', authenticateToken, async (req, res) => {
+app.get('/api/user/profile', authenticateToken, requireSupabase, async (req, res) => {
   try {
     const userId = req.user.userId;
 
@@ -288,7 +409,7 @@ app.get('/api/user/profile', authenticateToken, async (req, res) => {
 // Client Management Endpoints
 
 // Get all clients (protected route)
-app.get('/api/clients', authenticateToken, async (req, res) => {
+app.get('/api/clients', authenticateToken, requireSupabase, async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('clients')
@@ -317,7 +438,7 @@ app.get('/api/clients', authenticateToken, async (req, res) => {
 });
 
 // Get single client
-app.get('/api/clients/:id', authenticateToken, async (req, res) => {
+app.get('/api/clients/:id', authenticateToken, requireSupabase, async (req, res) => {
   try {
     const { id } = req.params;
     const { data, error } = await supabase
@@ -348,7 +469,7 @@ app.get('/api/clients/:id', authenticateToken, async (req, res) => {
 });
 
 // Create new client
-app.post('/api/clients', authenticateToken, async (req, res) => {
+app.post('/api/clients', authenticateToken, requireSupabase, async (req, res) => {
   try {
     const { name, email, company, phone, status } = req.body;
 
@@ -395,7 +516,7 @@ app.post('/api/clients', authenticateToken, async (req, res) => {
 });
 
 // Update client
-app.put('/api/clients/:id', authenticateToken, async (req, res) => {
+app.put('/api/clients/:id', authenticateToken, requireSupabase, async (req, res) => {
   try {
     const { id } = req.params;
     const { name, email, company, phone, status } = req.body;
@@ -437,7 +558,7 @@ app.put('/api/clients/:id', authenticateToken, async (req, res) => {
 });
 
 // Delete client
-app.delete('/api/clients/:id', authenticateToken, async (req, res) => {
+app.delete('/api/clients/:id', authenticateToken, requireSupabase, async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -474,7 +595,7 @@ app.delete('/api/clients/:id', authenticateToken, async (req, res) => {
 // ===== USERS MANAGEMENT =====
 
 // Get all users in the authenticated user's organization
-app.get('/api/users', authenticateToken, async (req, res) => {
+app.get('/api/users', authenticateToken, requireSupabase, async (req, res) => {
   try {
     const userId = req.user.userId;
 
@@ -2374,8 +2495,8 @@ app.delete('/api/news/:id', authenticateToken, async (req, res) => {
 
 // ===== HOSPITALS/LEADERBOARD =====
 
-// Get all hospitals (temporarily unauthenticated for testing Supabase connection)
-app.get('/api/hospitals', async (req, res) => {
+// Get all hospitals for enrollment leaderboard
+app.get('/api/hospitals', authenticateToken, async (req, res) => {
   try {
     let transformedHospitals = [];
 
@@ -4542,10 +4663,54 @@ app.use((req, res) => {
   });
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
+  console.log('');
+  console.log('═══════════════════════════════════════════════════════════');
   console.log(`🚀 Client Portal Backend running on port ${PORT}`);
-  console.log(`📊 Health check: http://localhost:${PORT}/health`);
-  console.log(`🔐 Login endpoint: http://localhost:${PORT}/api/auth/login`);
-  console.log(`👥 Clients endpoint: http://localhost:${PORT}/api/clients`);
+  console.log('═══════════════════════════════════════════════════════════');
+  console.log('');
+  console.log('📋 Environment Variables Status:');
+  console.log(`   SUPABASE_URL:          ${process.env.SUPABASE_URL ? '✅ Set' : '❌ MISSING'}`);
+  console.log(`   SUPABASE_ANON_KEY:     ${process.env.SUPABASE_ANON_KEY ? '✅ Set' : '❌ MISSING'}`);
+  console.log(`   SUPABASE_SERVICE_KEY:  ${process.env.SUPABASE_SERVICE_ROLE_KEY ? '✅ Set' : '❌ MISSING'}`);
+  console.log(`   JWT_SECRET:            ${process.env.JWT_SECRET && process.env.JWT_SECRET !== 'your-secret-key-change-in-production' ? '✅ Set' : '⚠️  Using default (change in production!)'}`);
+  console.log('');
+  console.log('🔌 Service Status:');
+  console.log(`   Supabase Client:       ${supabase ? '✅ Initialized' : '❌ Not initialized'}`);
+  console.log(`   Supabase Admin:        ${supabaseAdmin ? '✅ Initialized' : '❌ Not initialized'}`);
+  
+  // Test database connectivity
+  if (supabase) {
+    try {
+      const { data, error } = await supabase.from('profiles').select('id').limit(1);
+      if (error) {
+        console.log(`   Database Connection:   ❌ Error: ${error.message}`);
+      } else {
+        console.log('   Database Connection:   ✅ Connected');
+      }
+    } catch (err) {
+      console.log(`   Database Connection:   ❌ Error: ${err.message}`);
+    }
+  } else {
+    console.log('   Database Connection:   ❌ Cannot test (Supabase not configured)');
+  }
+  
+  console.log('');
+  console.log('📍 Endpoints:');
+  console.log(`   Health check: http://localhost:${PORT}/health`);
+  console.log(`   Login:        http://localhost:${PORT}/api/auth/login`);
+  console.log(`   Clients:      http://localhost:${PORT}/api/clients`);
+  console.log('');
+  
+  if (!supabase) {
+    console.log('⚠️  WARNING: Database not configured!');
+    console.log('   Set these environment variables in Render:');
+    console.log('   - SUPABASE_URL');
+    console.log('   - SUPABASE_ANON_KEY');
+    console.log('   - SUPABASE_SERVICE_ROLE_KEY');
+    console.log('   - JWT_SECRET');
+    console.log('');
+  }
+  console.log('═══════════════════════════════════════════════════════════');
 });
 

@@ -178,10 +178,29 @@
 
     <script>
         // API URL configuration for different environments
-        window.API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-            ? 'http://localhost:5000'
-            : (window.location.protocol + '//' + window.location.hostname.replace('login', 'api') ||
-               'https://api.your-backend-service.onrender.com');
+        // IMPORTANT: Update RENDER_BACKEND_URL with your actual Render backend URL
+        const RENDER_BACKEND_URL = 'https://client-backend-and-mobile-app.onrender.com';
+        
+        window.API_BASE_URL = (function() {
+            const hostname = window.location.hostname;
+            
+            // Local development
+            if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                return 'http://localhost:5000';
+            }
+            
+            // Production - use the configured Render backend URL
+            // Make sure to update RENDER_BACKEND_URL above with your actual backend URL
+            if (RENDER_BACKEND_URL && RENDER_BACKEND_URL !== 'https://YOUR-BACKEND-SERVICE.onrender.com') {
+                return RENDER_BACKEND_URL;
+            }
+            
+            // Fallback: try to construct API URL from current hostname
+            // This works if frontend is at client-xxx.onrender.com and backend is at api-xxx.onrender.com
+            console.warn('⚠️ RENDER_BACKEND_URL not configured! API calls may fail.');
+            console.warn('Current hostname:', hostname);
+            return window.location.protocol + '//' + hostname.replace('client', 'api').replace('frontend', 'backend');
+        })();
 
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
