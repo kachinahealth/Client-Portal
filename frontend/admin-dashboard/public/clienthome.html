@@ -226,6 +226,104 @@
             } else {
                 console.error('saveHospitalBtn not found in DOM');
             }
+
+            // Add Document button
+            const documentSubmitBtn = document.getElementById('documentSubmitBtn');
+            if (documentSubmitBtn) {
+                documentSubmitBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('Add Document button clicked');
+                    try {
+                        saveDocument();
+                    } catch (error) {
+                        console.error('Error calling saveDocument:', error);
+                    }
+                });
+            }
+
+            // Cancel Document Edit button
+            const documentCancelBtn = document.getElementById('documentCancelBtn');
+            if (documentCancelBtn) {
+                documentCancelBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('Cancel Document Edit button clicked');
+                    try {
+                        cancelDocumentEdit();
+                    } catch (error) {
+                        console.error('Error calling cancelDocumentEdit:', error);
+                    }
+                });
+            }
+
+            // Save User button
+            const saveUserBtn = document.getElementById('saveUserBtn');
+            if (saveUserBtn) {
+                saveUserBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('Save User button clicked');
+                    try {
+                        saveUser();
+                    } catch (error) {
+                        console.error('Error calling saveUser:', error);
+                    }
+                });
+            }
+
+            // Cancel User Edit button
+            const cancelUserEditBtn = document.getElementById('cancelUserEditBtn');
+            if (cancelUserEditBtn) {
+                cancelUserEditBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('Cancel User Edit button clicked');
+                    try {
+                        cancelUserEdit();
+                    } catch (error) {
+                        console.error('Error calling cancelUserEdit:', error);
+                    }
+                });
+            }
+
+            // Cancel Trial Edit button
+            const cancelTrialEditBtn = document.getElementById('cancelTrialEditBtn');
+            if (cancelTrialEditBtn) {
+                cancelTrialEditBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('Cancel Trial Edit button clicked');
+                    try {
+                        cancelTrialEdit();
+                    } catch (error) {
+                        console.error('Error calling cancelTrialEdit:', error);
+                    }
+                });
+            }
+
+            // Cancel Training Material Edit button
+            const trainingCancelBtn = document.getElementById('trainingCancelBtn');
+            if (trainingCancelBtn) {
+                trainingCancelBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('Cancel Training Material Edit button clicked');
+                    try {
+                        cancelTrainingMaterialEdit();
+                    } catch (error) {
+                        console.error('Error calling cancelTrainingMaterialEdit:', error);
+                    }
+                });
+            }
+
+            // Cancel Study Protocol Edit button
+            const protocolCancelBtn = document.getElementById('protocolCancelBtn');
+            if (protocolCancelBtn) {
+                protocolCancelBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('Cancel Study Protocol Edit button clicked');
+                    try {
+                        cancelStudyProtocolEdit();
+                    } catch (error) {
+                        console.error('Error calling cancelStudyProtocolEdit:', error);
+                    }
+                });
+            }
         }
 
 
@@ -1313,8 +1411,8 @@
                         </div>
                     </div>
                     <div class="form-actions">
-                        <button class="btn-primary" onclick="saveUser()" id="saveUserBtn">Send Invitation</button>
-                        <button class="btn" onclick="cancelUserEdit()" id="cancelUserEditBtn" style="display: none;">Cancel Edit</button>
+                        <button class="btn-primary" id="saveUserBtn">Send Invitation</button>
+                        <button class="btn" id="cancelUserEditBtn" style="display: none;">Cancel Edit</button>
                     </div>
                 </div>
 
@@ -1395,8 +1493,8 @@
                         </div>
 
                         <div style="display: flex; gap: 1rem;">
-                            <button class="btn-primary" id="documentSubmitBtn" onclick="saveDocument()">Add Document</button>
-                            <button class="btn" id="documentCancelBtn" onclick="cancelDocumentEdit()" style="display: none;">Cancel</button>
+                            <button class="btn-primary" id="documentSubmitBtn">Add Document</button>
+                            <button class="btn" id="documentCancelBtn" style="display: none;">Cancel</button>
                         </div>
                     </div>
                     <!-- News Items List -->
@@ -1549,7 +1647,7 @@
                     </div>
                     <div class="form-actions">
                         <button class="btn-primary" id="saveTrialBtn">Add Trial</button>
-                        <button class="btn" onclick="cancelTrialEdit()" id="cancelTrialEditBtn" style="display: none;">Cancel Edit</button>
+                        <button class="btn" id="cancelTrialEditBtn" style="display: none;">Cancel Edit</button>
                     </div>
                 </div>
 
@@ -1634,7 +1732,7 @@
                         
                     <div class="form-actions">
                         <button class="btn-primary" id="trainingSubmitBtn">Add Training Material</button>
-                        <button class="btn" onclick="cancelTrainingMaterialEdit()" id="trainingCancelBtn" style="display: none;">Cancel Edit</button>
+                        <button class="btn" id="trainingCancelBtn" style="display: none;">Cancel Edit</button>
                     </div>
                 </div>
 
@@ -1712,7 +1810,7 @@
                         
                     <div class="form-actions">
                         <button class="btn-primary" id="protocolSubmitBtn">Add Study Protocol</button>
-                        <button class="btn" onclick="cancelStudyProtocolEdit()" id="protocolCancelBtn" style="display: none;">Cancel Edit</button>
+                        <button class="btn" id="protocolCancelBtn" style="display: none;">Cancel Edit</button>
                     </div>
                 </div>
 
