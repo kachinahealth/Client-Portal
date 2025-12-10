@@ -1941,6 +1941,56 @@
         window.conversations = [];
         let messages = [];
 
+        // Global functions for form toggling (must be defined before HTML elements use them)
+        function toggleDocumentForm() {
+            const documentType = document.getElementById('documentType').value;
+            const newsFields = document.getElementById('newsFields');
+            const documentFields = document.getElementById('documentFields');
+
+            if (documentType === 'news') {
+                newsFields.style.display = 'block';
+                documentFields.style.display = 'none';
+            } else {
+                newsFields.style.display = 'none';
+                documentFields.style.display = 'block';
+            }
+        }
+
+        function toggleTrainingUploadOptions() {
+            const type = document.getElementById('trainingType').value;
+            const textSection = document.getElementById('textContentSection');
+            const fileSection = document.getElementById('fileUploadSection');
+
+            textSection.style.display = 'none';
+            fileSection.style.display = 'none';
+
+            if (type === 'text') {
+                textSection.style.display = 'block';
+            } else if (type === 'pdf' || type === 'video') {
+                fileSection.style.display = 'block';
+                const fileInput = document.getElementById('trainingFile');
+                if (type === 'pdf') {
+                    fileInput.accept = '.pdf';
+                } else if (type === 'video') {
+                    fileInput.accept = '.mp4,.avi,.mov,.wmv';
+                }
+            }
+        }
+
+        function toggleProtocolUploadOptions() {
+            const type = document.getElementById('protocolType').value;
+            const textSection = document.getElementById('protocolTextContentSection');
+            const fileSection = document.getElementById('protocolFileUploadSection');
+
+            textSection.style.display = 'none';
+            fileSection.style.display = 'none';
+
+            if (type === 'text') {
+                textSection.style.display = 'block';
+            } else if (type === 'pdf') {
+                fileSection.style.display = 'block';
+            }
+        }
 
         // Initialize dashboard
         window.onload = async function() {
@@ -2060,20 +2110,6 @@
             testServerConnectivity();
         };
 
-
-        function toggleDocumentForm() {
-            const documentType = document.getElementById('documentType').value;
-            const newsFields = document.getElementById('newsFields');
-            const documentFields = document.getElementById('documentFields');
-
-            if (documentType === 'news') {
-                newsFields.style.display = 'block';
-                documentFields.style.display = 'none';
-            } else {
-                newsFields.style.display = 'none';
-                documentFields.style.display = 'block';
-            }
-        }
 
         // Initialize drag-and-drop functionality for file uploads
         function initializeFileUpload() {
@@ -3975,26 +4011,6 @@ ${endpointStatus.join('\n')}
 
         // Training Materials Functions
 
-        function toggleTrainingUploadOptions() {
-            const type = document.getElementById('trainingType').value;
-            const textSection = document.getElementById('textContentSection');
-            const fileSection = document.getElementById('fileUploadSection');
-            
-            textSection.style.display = 'none';
-            fileSection.style.display = 'none';
-            
-            if (type === 'text') {
-                textSection.style.display = 'block';
-            } else if (type === 'pdf' || type === 'video') {
-                fileSection.style.display = 'block';
-                const fileInput = document.getElementById('trainingFile');
-                if (type === 'pdf') {
-                    fileInput.accept = '.pdf';
-                } else if (type === 'video') {
-                    fileInput.accept = '.mp4,.avi,.mov,.wmv';
-                }
-            }
-        }
 
         async function loadTrainingMaterials() {
             try {
@@ -4063,20 +4079,6 @@ ${endpointStatus.join('\n')}
 
         // Study Protocol Functions
 
-        function toggleProtocolUploadOptions() {
-            const type = document.getElementById('protocolType').value;
-            const textSection = document.getElementById('protocolTextContentSection');
-            const fileSection = document.getElementById('protocolFileUploadSection');
-            
-            textSection.style.display = 'none';
-            fileSection.style.display = 'none';
-            
-            if (type === 'text') {
-                textSection.style.display = 'block';
-            } else if (type === 'pdf') {
-                fileSection.style.display = 'block';
-            }
-        }
 
         async function loadStudyProtocols() {
             try {
