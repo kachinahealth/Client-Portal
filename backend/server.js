@@ -1323,31 +1323,22 @@ app.post('/api/clinical-trials', authenticateToken, async (req, res) => {
       });
     }
 
-    // Get user information from users table (where roles are stored)
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('role')
+    // Get user role information from profiles table
+    const { data: userProfile, error: profileError } = await supabase
+      .from('profiles')
+      .select('organization_id, role')
       .eq('id', userId)
       .single();
 
-    if (userError) {
-      // If user not found in users table, try to get from auth and assume 'user' role
-      console.log('User not found in users table, checking auth user and assuming user role');
-      const { data: authUser, error: authError } = await supabase.auth.admin.getUserById(userId);
-
-      if (authError || !authUser.user) {
-        return res.status(400).json({
-          success: false,
-          message: 'User authentication failed. Please contact an administrator.'
-        });
-      }
-
-      // Assume 'user' role for authenticated users not in users table
-      userData = { role: 'user' };
+    if (profileError) {
+      return res.status(400).json({
+        success: false,
+        message: 'User profile not found. Please contact an administrator.'
+      });
     }
 
     // Allow admins and users to create trials
-    if (!['admin', 'user'].includes(userData.role)) {
+    if (!['admin', 'user'].includes(userProfile.role)) {
       return res.status(403).json({
         success: false,
         message: 'You do not have permission to create clinical trials'
@@ -1425,31 +1416,22 @@ app.put('/api/clinical-trials/:id', authenticateToken, async (req, res) => {
       });
     }
 
-    // Get user information from users table (where roles are stored)
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('role')
+    // Get user role information from profiles table
+    const { data: userProfile, error: profileError } = await supabase
+      .from('profiles')
+      .select('organization_id, role')
       .eq('id', userId)
       .single();
 
-    if (userError) {
-      // If user not found in users table, try to get from auth and assume 'user' role
-      console.log('User not found in users table, checking auth user and assuming user role');
-      const { data: authUser, error: authError } = await supabase.auth.admin.getUserById(userId);
-
-      if (authError || !authUser.user) {
-        return res.status(400).json({
-          success: false,
-          message: 'User authentication failed. Please contact an administrator.'
-        });
-      }
-
-      // Assume 'user' role for authenticated users not in users table
-      userData = { role: 'user' };
+    if (profileError) {
+      return res.status(400).json({
+        success: false,
+        message: 'User profile not found. Please contact an administrator.'
+      });
     }
 
     // Allow admins and users to update trials
-    if (!['admin', 'user'].includes(userData.role)) {
+    if (!['admin', 'user'].includes(userProfile.role)) {
       return res.status(403).json({
         success: false,
         message: 'You do not have permission to update clinical trials'

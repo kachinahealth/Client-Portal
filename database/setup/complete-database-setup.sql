@@ -266,6 +266,39 @@ CREATE POLICY "Users can view their own analytics" ON user_analytics
 CREATE POLICY "Users can insert their own analytics" ON user_analytics
   FOR INSERT WITH CHECK (auth.uid() = user_id);
 
+-- Organizations table
+CREATE TABLE IF NOT EXISTS organizations (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name TEXT NOT NULL,
+  description TEXT,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Updated_at trigger for organizations
+CREATE TRIGGER update_organizations_updated_at
+    BEFORE UPDATE ON organizations
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- Enable RLS for organizations
+ALTER TABLE organizations ENABLE ROW LEVEL SECURITY;
+
+-- RLS policies for organizations
+CREATE POLICY "Users can view all organizations" ON organizations
+  FOR SELECT USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Admins can manage organizations" ON organizations
+  FOR ALL USING (
+    auth.role() = 'authenticated' AND
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE profiles.id = auth.uid()
+      AND profiles.role = 'admin'
+    )
+  );
+
 -- App Settings table
 CREATE TABLE IF NOT EXISTS app_settings (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -299,9 +332,11 @@ CREATE POLICY "Only admins can modify app settings" ON app_settings
       AND users.role = 'admin'
     )
   );
--- Profiles table (for user display information)
+-- Profiles table (for user display information and role management)
 CREATE TABLE IF NOT EXISTS profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  role TEXT DEFAULT 'user' CHECK (role IN ('admin', 'manager', 'user')),
+  organization_id UUID REFERENCES organizations(id),
   display_name TEXT,
   avatar_url TEXT,
   bio TEXT,
@@ -327,6 +362,16 @@ CREATE POLICY "Users can insert their own profile" ON profiles
 
 CREATE POLICY "Users can update their own profile" ON profiles
   FOR UPDATE USING (auth.uid() = id);
+
+CREATE POLICY "Admins can update all profiles" ON profiles
+  FOR UPDATE USING (
+    auth.role() = 'authenticated' AND
+    EXISTS (
+      SELECT 1 FROM profiles p
+      WHERE p.id = auth.uid()
+      AND p.role = 'admin'
+    )
+  );
 
 -- Messages table
 CREATE TABLE IF NOT EXISTS messages (
