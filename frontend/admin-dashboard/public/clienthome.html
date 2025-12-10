@@ -121,6 +121,7 @@
             } else if (index === 2 && typeof loadLeaderboard === 'function') {
                 loadLeaderboard(); // Enrollment Leaderboard tab
             } else if (index === 3 && typeof loadClinicalTrials === 'function') {
+                setClinicalTrialDropdownsLoading(); // Set loading state first
                 loadClinicalTrials(); // Clinical Trials tab
             } else if (index === 4 && typeof loadPDFDocuments === 'function') {
                 loadPDFDocuments(); // Training Materials tab
@@ -163,16 +164,17 @@
 
         // Attach button event listeners after all functions are defined
         function attachButtonListeners() {
+            console.log('attachButtonListeners called');
             // Add Study Protocol button
             const protocolSubmitBtn = document.getElementById('protocolSubmitBtn');
             if (protocolSubmitBtn) {
                 protocolSubmitBtn.addEventListener('click', function(e) {
                     e.preventDefault();
                     console.log('Add Study Protocol button clicked');
-                    if (typeof addStudyProtocol === 'function') {
+                    try {
                         addStudyProtocol();
-                    } else {
-                        console.error('addStudyProtocol function not found');
+                    } catch (error) {
+                        console.error('Error calling addStudyProtocol:', error);
                     }
                 });
             }
@@ -183,10 +185,10 @@
                 trainingSubmitBtn.addEventListener('click', function(e) {
                     e.preventDefault();
                     console.log('Add Training Material button clicked');
-                    if (typeof addTrainingMaterial === 'function') {
+                    try {
                         addTrainingMaterial();
-                    } else {
-                        console.error('addTrainingMaterial function not found');
+                    } catch (error) {
+                        console.error('Error calling addTrainingMaterial:', error);
                     }
                 });
             }
@@ -197,31 +199,34 @@
                 saveTrialBtn.addEventListener('click', function(e) {
                     e.preventDefault();
                     console.log('Add Trial button clicked');
-                    if (typeof saveTrial === 'function') {
+                    try {
                         saveTrial();
-                    } else {
-                        console.error('saveTrial function not found');
+                    } catch (error) {
+                        console.error('Error calling saveTrial:', error);
                     }
                 });
             }
 
             // Add Hospital button
             const saveHospitalBtn = document.getElementById('saveHospitalBtn');
+            console.log('Looking for saveHospitalBtn:', saveHospitalBtn ? 'Found' : 'Not found');
             if (saveHospitalBtn) {
+                console.log('Attaching event listener to saveHospitalBtn');
                 saveHospitalBtn.addEventListener('click', function(e) {
                     e.preventDefault();
                     console.log('Add Hospital button clicked');
-                    if (typeof saveHospital === 'function') {
+                    console.log('saveHospital function exists:', typeof saveHospital);
+                    try {
                         saveHospital();
-                    } else {
-                        console.error('saveHospital function not found');
+                    } catch (error) {
+                        console.error('Error calling saveHospital:', error);
+                        console.error('Error stack:', error.stack);
                     }
                 });
+            } else {
+                console.error('saveHospitalBtn not found in DOM');
             }
         }
-
-        // Call attachButtonListeners after a short delay to ensure all functions are loaded
-        setTimeout(attachButtonListeners, 100);
 
 
 
@@ -3386,7 +3391,9 @@
         }
 
         // Hospital Functions
+        console.log('Defining saveHospital function');
         async function saveHospital() {
+            console.log('saveHospital function called');
             // Company checking disabled
             // if (!currentCompany) {
                 showAlert('leaderboardAlert', 'Error: No company selected', 'error');
@@ -5319,6 +5326,10 @@ ${endpointStatus.join('\n')}
                 console.error('Error:', error);
             }
         }
+
+        // Attach all button event listeners after functions are loaded
+        console.log('Calling attachButtonListeners');
+        attachButtonListeners();
 
     </script>
 </body>
