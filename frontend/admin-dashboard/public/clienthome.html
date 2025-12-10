@@ -122,7 +122,8 @@
                 loadLeaderboard(); // Enrollment Leaderboard tab
             } else if (index === 3 && typeof loadClinicalTrials === 'function') {
                 setClinicalTrialDropdownsLoading(); // Set loading state first
-                loadClinicalTrials(); // Clinical Trials tab
+                loadClinicalTrials(); // Load data for dropdowns in other tabs
+                loadTrials(); // Load and display trials in clinical trials tab table
             } else if (index === 4 && typeof loadPDFDocuments === 'function') {
                 loadPDFDocuments(); // Training Materials tab
             } else if (index === 5 && typeof loadPDFDocuments === 'function') {
@@ -329,15 +330,18 @@
         // Global functions for form toggling (defined early so HTML elements can use them)
         function toggleDocumentForm() {
             const documentType = document.getElementById('documentType').value;
-            const newsFields = document.getElementById('newsFields');
-            const documentFields = document.getElementById('documentFields');
+            const textFields = document.getElementById('textDocumentFields');
+            const pdfFields = document.getElementById('pdfDocumentFields');
 
-            if (documentType === 'news') {
-                newsFields.style.display = 'block';
-                documentFields.style.display = 'none';
-            } else {
-                newsFields.style.display = 'none';
-                documentFields.style.display = 'block';
+            // Hide all document type fields by default
+            if (textFields) textFields.style.display = 'none';
+            if (pdfFields) pdfFields.style.display = 'none';
+
+            // Show appropriate fields based on selection
+            if (documentType === 'text' && textFields) {
+                textFields.style.display = 'block';
+            } else if (documentType === 'pdf' && pdfFields) {
+                pdfFields.style.display = 'block';
             }
         }
 
@@ -1497,7 +1501,7 @@
                         <div class="form-group">
                             <label for="documentType">Document Type</label>
                             <select id="documentType" onchange="toggleDocumentForm()">
-                                <option value="news">News Item</option>
+                                <option value="">Select a Document Type</option>
                                 <option value="text">Text Document</option>
                                 <option value="pdf">PDF Document</option>
                             </select>
@@ -1517,16 +1521,8 @@
                             </div>
                         </div>
 
-                        <!-- Fields for News Items -->
-                        <div id="newsFields" style="display: block;">
-                            <div class="form-group">
-                                <label for="newsContent">News Content</label>
-                                <textarea id="newsContent" placeholder="Enter news content"></textarea>
-                            </div>
-                        </div>
-
-                        <!-- Fields for Document uploads (Text/PDF) -->
-                        <div id="documentFields" style="display: none;">
+                        <!-- Fields for Text Documents -->
+                        <div id="textDocumentFields" style="display: none;">
                             <div class="form-group">
                                 <label for="documentDescription">Description</label>
                                 <textarea id="documentDescription" placeholder="Enter document description"></textarea>
@@ -1536,9 +1532,25 @@
                                 <input type="text" id="documentCategory" placeholder="e.g., Training, Updates, Guidelines">
                             </div>
                             <div class="form-group">
-                                <label for="documentFile">File</label>
-                                <input type="file" id="documentFile" accept=".pdf,.txt,.doc,.docx,.rtf">
-                                <small style="color: #666; margin-top: 0.25rem; display: block;">Supported formats: PDF, TXT, DOC, DOCX, RTF</small>
+                                <label for="documentContent">Document Content</label>
+                                <textarea id="documentContent" placeholder="Enter the text content for this document" rows="8"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Fields for PDF Documents -->
+                        <div id="pdfDocumentFields" style="display: none;">
+                            <div class="form-group">
+                                <label for="pdfDocumentDescription">Description</label>
+                                <textarea id="pdfDocumentDescription" placeholder="Enter document description"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="pdfDocumentCategory">Category</label>
+                                <input type="text" id="pdfDocumentCategory" placeholder="e.g., Training, Updates, Guidelines">
+                            </div>
+                            <div class="form-group">
+                                <label for="documentFile">PDF File</label>
+                                <input type="file" id="documentFile" accept=".pdf">
+                                <small style="color: #666; margin-top: 0.25rem; display: block;">Supported format: PDF</small>
                             </div>
                         </div>
 
@@ -2900,6 +2912,10 @@
         // ============================================================================
 
         async function loadTrials() {
+            // Set loading state
+            const tableBody = document.getElementById('trialsTableBody');
+            tableBody.innerHTML = '<tr><td colspan="6">Loading Clinical Trials...</td></tr>';
+
             try {
                 const token = localStorage.getItem('token');
                 const response = await fetch(`${window.API_BASE_URL}/api/clinical-trials`, {
@@ -2912,10 +2928,12 @@
                 if (response.ok && data.success) {
                     updateTrialsTable(data.trials);
                 } else {
+                    tableBody.innerHTML = '<tr><td colspan="6">Failed to load clinical trials</td></tr>';
                     showAlert('trialAlert', data.message || 'Failed to load trials', 'error');
                 }
             } catch (error) {
                 console.error('Error loading trials:', error);
+                tableBody.innerHTML = '<tr><td colspan="6">Error loading clinical trials</td></tr>';
                 showAlert('trialAlert', 'Error loading trials. Please try again.', 'error');
             }
         }
@@ -5234,28 +5252,20 @@ ${endpointStatus.join('\n')}
             }
 
             try {
-                if (documentType === 'news') {
-                    // Handle news items
-                    const content = document.getElementById('newsContent').value;
+                if (documentType === 'text') {
+                    // Handle text documents
+                    const description = document.getElementById('documentDescription').value;
+                    const category = document.getElementById('documentCategory').value;
+                    const content = document.getElementById('documentContent').value;
 
-                    if (!content) {
-                        showAlert('newsAlert', 'Please enter news content', 'error');
-                        return;
-                    }
-
-                    const clinical_trial_id = document.getElementById('newsClinicalTrial').value;
-
-                    if (!clinical_trial_id) {
-                        showAlert('newsAlert', 'Please select a clinical trial', 'error');
+                    if (!description || !content) {
+                        showAlert('newsAlert', 'Please fill in all fields', 'error');
                         return;
                     }
 
                     const token = localStorage.getItem('token');
-                    const isEditing = editingNewsId !== null;
-                    const url = isEditing
-                        ? `${window.API_BASE_URL}/api/news/${editingNewsId}`
-                        : `${window.API_BASE_URL}/api/news`;
-                    const method = isEditing ? 'PUT' : 'POST';
+                    const url = `${window.API_BASE_URL}/api/study-protocols`;
+                    const method = 'POST';
 
                     console.log(`📤 ${method} ${url} - Editing: ${isEditing}, NewsId: ${editingNewsId}`);
 
@@ -5267,8 +5277,10 @@ ${endpointStatus.join('\n')}
                         },
                         body: JSON.stringify({
                             title,
-                            content: content,
-                            clinical_trial_id: clinical_trial_id
+                            description,
+                            category: category || 'General',
+                            type: 'text',
+                            content: content
                         })
                     });
 
@@ -5276,29 +5288,29 @@ ${endpointStatus.join('\n')}
                     console.log('📥 Response:', response.status, data);
 
                     if (response.ok && data.success) {
-                        showAlert('newsAlert', `News ${isEditing ? 'updated' : 'added'} successfully!`, 'success');
+                        showAlert('newsAlert', `Text document added successfully!`, 'success');
                         cancelDocumentEdit();
-                        loadNewsItems();
+                        loadStudyProtocols();
                     } else {
-                        showAlert('newsAlert', data.message || `Failed to ${isEditing ? 'update' : 'add'} news`, 'error');
+                        showAlert('newsAlert', data.message || 'Failed to add text document', 'error');
                     }
-                } else {
-                    // Handle document uploads (PDF/Text)
-                    const description = document.getElementById('documentDescription').value;
-                    const category = document.getElementById('documentCategory').value;
+                } else if (documentType === 'pdf') {
+                    // Handle PDF document uploads
+                    const description = document.getElementById('pdfDocumentDescription').value;
+                    const category = document.getElementById('pdfDocumentCategory').value;
                     const fileInput = document.getElementById('documentFile');
 
                     if (!description || !fileInput.files[0]) {
-                        showAlert('newsAlert', 'Please fill in all fields and select a file', 'error');
+                        showAlert('newsAlert', 'Please fill in all fields and select a PDF file', 'error');
                         return;
                     }
 
-                    // Validate file type
-                    const allowedTypes = ['application/pdf', 'text/plain', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/rtf'];
+                    // Validate file type (PDF only)
+                    const allowedTypes = ['application/pdf'];
                     const file = fileInput.files[0];
 
-                    if (!allowedTypes.includes(file.type) && !file.name.match(/\.(pdf|txt|doc|docx|rtf)$/i)) {
-                        showAlert('newsAlert', 'Please select a valid file (PDF, TXT, DOC, DOCX, or RTF)', 'error');
+                    if (!allowedTypes.includes(file.type) && !file.name.match(/\.pdf$/i)) {
+                        showAlert('newsAlert', 'Please select a valid PDF file', 'error');
                         return;
                     }
 
@@ -5307,6 +5319,7 @@ ${endpointStatus.join('\n')}
                     formData.append('title', title);
                     formData.append('description', description);
                     formData.append('category', category || 'General');
+                    formData.append('type', 'pdf');
                     formData.append('file', file);
 
                     const token = localStorage.getItem('token');
