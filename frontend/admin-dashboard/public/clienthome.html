@@ -1823,6 +1823,17 @@
         let companyInfo = null;
         let editingHospitalId = null;
         let clinicalTrials = []; // Store clinical trials data for assignment dropdown
+        let clinicalTrialsLoaded = false; // Track if clinical trials have been loaded
+        let users = []; // Store users data
+        let usersLoaded = false; // Track if users have been loaded
+        let newsItems = []; // Store news items data
+        let newsItemsLoaded = false; // Track if news items have been loaded
+        let pdfDocuments = []; // Store PDF documents data
+        let pdfDocumentsLoaded = false; // Track if PDF documents have been loaded
+        let conversations = []; // Store conversations data
+        let conversationsLoaded = false; // Track if conversations have been loaded
+        let leaderboardData = null; // Store leaderboard data
+        let leaderboardLoaded = false; // Track if leaderboard has been loaded
         let currentConversation = null;
         window.conversations = [];
         let messages = [];
@@ -1928,10 +1939,14 @@
             // Load clinical trials for dropdowns - try even if user profile fetch failed
             if (token) {
                 console.log('🎯 About to call loadClinicalTrials()');
+                // First set loading states
+                setClinicalTrialDropdownsLoading();
                 await loadClinicalTrials();
                 console.log('✅ loadClinicalTrials() completed');
             } else {
                 console.log('⚠️ Skipping loadClinicalTrials() - no auth token');
+                // Still set "no data" states for unauthenticated users
+                setClinicalTrialDropdownsNoData();
             }
 
             loadDashboardData();
@@ -2184,6 +2199,14 @@
 
         async function loadUsers() {
             console.log('🚀 loadUsers() called - User Management tab');
+
+            // Return early if already loaded
+            if (usersLoaded && users.length > 0) {
+                console.log('✅ Users already loaded, skipping API call');
+                updateUserTable(users);
+                return;
+            }
+
             try {
                 // Ensure clinical trials are loaded for the user assignment dropdowns
                 if (!clinicalTrials || clinicalTrials.length === 0) {
@@ -2204,20 +2227,34 @@
                 console.log('📦 Users API response:', data);
 
                 if (response.ok && data.success) {
-                    console.log('✅ Successfully loaded', data.users?.length || 0, 'users');
-                    updateUserTable(data.users);
+                    users = data.users || [];
+                    usersLoaded = true; // Mark as loaded
+                    console.log('✅ Successfully loaded', users.length, 'users');
+                    updateUserTable(users);
                 } else {
                     console.log('❌ Failed to load users:', data.message);
+                    users = [];
+                    usersLoaded = true; // Mark as loaded even on failure
                     updateUserTable([]);
                 }
             } catch (error) {
                 console.error('💥 Error loading users:', error);
+                users = [];
+                usersLoaded = true; // Mark as loaded even on error
                 updateUserTable([]);
             }
         }
 
         async function loadClinicalTrials() {
             console.log('🚀 loadClinicalTrials called');
+
+            // Return early if already loaded
+            if (clinicalTrialsLoaded && clinicalTrials.length > 0) {
+                console.log('✅ Clinical trials already loaded, skipping API call');
+                await populateClinicalTrialDropdowns();
+                return;
+            }
+
             try {
                 const token = localStorage.getItem('token');
                 console.log('🔑 Token present:', !!token);
@@ -2233,6 +2270,7 @@
 
                 if (response.ok && data.success) {
                     clinicalTrials = data.trials || [];
+                    clinicalTrialsLoaded = true; // Mark as loaded
                     console.log('📋 Loaded clinical trials for assignment dropdown:', clinicalTrials.length);
                     console.log('📋 Clinical trials data:', clinicalTrials);
 
@@ -2241,11 +2279,37 @@
                 } else {
                     console.error('Failed to load clinical trials:', data.message);
                     clinicalTrials = [];
+                    clinicalTrialsLoaded = true; // Mark as loaded even on failure to avoid repeated attempts
                 }
             } catch (error) {
                 console.error('Error loading clinical trials:', error);
                 clinicalTrials = [];
+                clinicalTrialsLoaded = true; // Mark as loaded even on error to avoid repeated attempts
             }
+        }
+
+        function setClinicalTrialDropdownsLoading() {
+            console.log('🔄 Setting clinical trial dropdowns to loading state');
+            const dropdowns = ['trainingClinicalTrial', 'protocolClinicalTrial'];
+
+            dropdowns.forEach(dropdownId => {
+                const dropdown = document.getElementById(dropdownId);
+                if (dropdown) {
+                    dropdown.innerHTML = '<option value="" disabled>Loading clinical trials...</option>';
+                }
+            });
+        }
+
+        function setClinicalTrialDropdownsNoData() {
+            console.log('🔄 Setting clinical trial dropdowns to no data state');
+            const dropdowns = ['trainingClinicalTrial', 'protocolClinicalTrial'];
+
+            dropdowns.forEach(dropdownId => {
+                const dropdown = document.getElementById(dropdownId);
+                if (dropdown) {
+                    dropdown.innerHTML = '<option value="" disabled>No clinical trials available</option>';
+                }
+            });
         }
 
         async function populateClinicalTrialDropdowns() {
@@ -2261,7 +2325,7 @@
                 console.log(`🔍 Checking dropdown ${dropdownId}:`, dropdown ? 'Found' : 'NOT FOUND');
 
                 if (dropdown) {
-                    // Clear existing options except the first one
+                    // Clear existing options
                     dropdown.innerHTML = '<option value="">Select a clinical trial...</option>';
                     console.log(`🧹 Cleared dropdown ${dropdownId}`);
 
@@ -2276,7 +2340,13 @@
                         });
                         console.log(`📋 Successfully populated ${dropdownId} with ${clinicalTrials.length} trials`);
                     } else {
-                        console.log(`⚠️ No clinical trials to populate for ${dropdownId}`);
+                        // Add "No clinical trials available" option when no data
+                        const noDataOption = document.createElement('option');
+                        noDataOption.value = '';
+                        noDataOption.textContent = 'No clinical trials available';
+                        noDataOption.disabled = true;
+                        dropdown.appendChild(noDataOption);
+                        console.log(`⚠️ Added "No clinical trials available" option to ${dropdownId}`);
                     }
                 } else {
                     console.error(`❌ Dropdown ${dropdownId} not found in DOM`);
@@ -2897,6 +2967,14 @@
 
         async function loadNewsItems() {
             console.log('🚀 loadNewsItems() called - News & Updates tab');
+
+            // Return early if already loaded
+            if (newsItemsLoaded && newsItems.length >= 0) { // Allow empty array
+                console.log('✅ News items already loaded, skipping API call');
+                updateNewsList(newsItems);
+                return;
+            }
+
             try {
                 // Ensure clinical trials are loaded for the news creation dropdown
                 if (!clinicalTrials || clinicalTrials.length === 0) {
@@ -2917,14 +2995,20 @@
                 console.log('📦 News API response:', data);
 
                 if (response.ok && data.success) {
-                    console.log('✅ Successfully loaded', data.newsItems?.length || 0, 'news items');
-                    updateNewsList(data.newsItems || []);
+                    newsItems = data.newsItems || [];
+                    newsItemsLoaded = true; // Mark as loaded
+                    console.log('✅ Successfully loaded', newsItems.length, 'news items');
+                    updateNewsList(newsItems);
                 } else {
                     console.log('❌ Failed to load news items:', data.message);
+                    newsItems = [];
+                    newsItemsLoaded = true; // Mark as loaded even on failure
                     updateNewsList([]);
                 }
             } catch (error) {
                 console.error('💥 Error loading news items:', error);
+                newsItems = [];
+                newsItemsLoaded = true; // Mark as loaded even on error
                 updateNewsList([]);
             }
         }
@@ -3010,17 +3094,42 @@
         }
 
         async function loadPDFDocuments() {
+            console.log('🚀 loadPDFDocuments() called - PDF Documents tab');
+
+            // Return early if already loaded
+            if (pdfDocumentsLoaded && pdfDocuments.length >= 0) { // Allow empty array
+                console.log('✅ PDF documents already loaded, skipping API call');
+                updatePDFsList(pdfDocuments);
+                return;
+            }
+
             try {
-                const response = await fetch(`${window.API_BASE_URL}/api/pdfs`);
+                const token = localStorage.getItem('token');
+                console.log('🔑 Token present for PDFs API:', !!token);
+                const response = await fetch(`${window.API_BASE_URL}/api/pdfs`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': token ? `Bearer ${token}` : ''
+                    }
+                });
                 const data = await response.json();
-                
-                if (response.ok) {
-                    updatePDFsList(data.pdfs);
+
+                if (response.ok && data.success) {
+                    pdfDocuments = data.pdfs || [];
+                    pdfDocumentsLoaded = true; // Mark as loaded
+                    console.log('✅ Successfully loaded', pdfDocuments.length, 'PDF documents');
+                    updatePDFsList(pdfDocuments);
                 } else {
-                    console.error('Failed to load PDFs:', data.error);
+                    console.log('❌ Failed to load PDF documents:', data.message);
+                    pdfDocuments = [];
+                    pdfDocumentsLoaded = true; // Mark as loaded even on failure
+                    updatePDFsList([]);
                 }
             } catch (error) {
-                console.error('Error loading PDFs:', error);
+                console.error('💥 Error loading PDF documents:', error);
+                pdfDocuments = [];
+                pdfDocumentsLoaded = true; // Mark as loaded even on error
+                updatePDFsList([]);
             }
         }
 
@@ -3140,6 +3249,14 @@
         // Leaderboard Functions
         async function loadLeaderboard() {
             console.log('🚀 loadLeaderboard() called - Enrollment Leaderboard tab');
+
+            // Return early if already loaded
+            if (leaderboardLoaded && leaderboardData) {
+                console.log('✅ Leaderboard data already loaded, skipping API call');
+                updateLeaderboard(leaderboardData);
+                return;
+            }
+
             try {
                 const token = localStorage.getItem('token');
                 console.log('🔑 Token present for hospitals API:', !!token);
@@ -3154,15 +3271,21 @@
                 console.log('📦 Hospitals API response:', data);
 
                 if (response.ok && data.success) {
+                    leaderboardData = data;
+                    leaderboardLoaded = true; // Mark as loaded
                     console.log('✅ Successfully loaded leaderboard data');
-                    updateLeaderboard(data);
+                    updateLeaderboard(leaderboardData);
                 } else {
                     console.log('❌ Failed to load leaderboard data');
-                    updateLeaderboard({ hospitals: [], summary: { totalConsented: 0, totalRandomized: 0, totalHospitals: 0 } });
+                    leaderboardData = { hospitals: [], summary: { totalConsented: 0, totalRandomized: 0, totalHospitals: 0 } };
+                    leaderboardLoaded = true; // Mark as loaded even on failure
+                    updateLeaderboard(leaderboardData);
                 }
             } catch (error) {
                 console.error('💥 Error loading leaderboard:', error);
-                updateLeaderboard({ hospitals: [], summary: { totalConsented: 0, totalRandomized: 0, totalHospitals: 0 } });
+                leaderboardData = { hospitals: [], summary: { totalConsented: 0, totalRandomized: 0, totalHospitals: 0 } };
+                leaderboardLoaded = true; // Mark as loaded even on error
+                updateLeaderboard(leaderboardData);
             }
         }
 
@@ -4798,23 +4921,44 @@ ${endpointStatus.join('\n')}
         let messages = [];
 
         async function loadMessages() {
+            console.log('🚀 loadMessages() called - Messages tab');
+
+            // Return early if already loaded
+            if (conversationsLoaded && conversations.length >= 0) { // Allow empty array
+                console.log('✅ Conversations already loaded, skipping API call');
+                window.conversations = conversations;
+                renderConversations();
+                return;
+            }
+
             try {
                 // Load conversations (users who have sent/received messages)
+                const token = localStorage.getItem('token');
+                console.log('🔑 Token present for conversations API:', !!token);
                 const conversationsResponse = await fetch(`${window.API_BASE_URL}/api/messages/conversations`, {
                     headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        'Authorization': token ? `Bearer ${token}` : ''
                     }
                 });
 
                 if (conversationsResponse.ok) {
-                    window.conversations = await conversationsResponse.json();
+                    conversations = await conversationsResponse.json();
+                    conversationsLoaded = true; // Mark as loaded
+                    window.conversations = conversations;
+                    console.log('✅ Successfully loaded', conversations.length, 'conversations');
                     renderConversations();
                 } else {
                     console.error('Failed to load conversations');
+                    conversations = [];
+                    conversationsLoaded = true; // Mark as loaded even on failure
+                    window.conversations = [];
                     document.getElementById('conversationsList').innerHTML = '<div class="error">Failed to load conversations</div>';
                 }
             } catch (error) {
-                console.error('Error loading messages:', error);
+                console.error('💥 Error loading messages:', error);
+                conversations = [];
+                conversationsLoaded = true; // Mark as loaded even on error
+                window.conversations = [];
                 document.getElementById('conversationsList').innerHTML = '<div class="error">Error loading conversations</div>';
             }
         }

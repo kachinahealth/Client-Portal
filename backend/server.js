@@ -597,6 +597,7 @@ app.delete('/api/clients/:id', authenticateToken, requireSupabase, async (req, r
 // Get all users in the authenticated user's organization
 app.get('/api/users', authenticateToken, requireSupabase, async (req, res) => {
   try {
+
     const userId = req.user.userId;
 
     // Get the current user's organization
@@ -1228,6 +1229,7 @@ app.get('/api/clinical-trials', authenticateToken, async (req, res) => {
   try {
     console.log('📨 GET /api/clinical-trials - Starting request');
 
+
     // Get user's organization
     const userId = req.user.userId;
     const { data: userProfile, error: profileError } = await supabaseAdmin
@@ -1309,6 +1311,15 @@ app.post('/api/clinical-trials', authenticateToken, async (req, res) => {
       return res.status(400).json({
         success: false,
         message: 'Trial name is required'
+      });
+    }
+
+    // Check if Supabase clients are configured
+    if (!supabase) {
+      console.warn('⚠️  Supabase client not configured - cannot create clinical trials');
+      return res.status(503).json({
+        success: false,
+        message: 'Database service unavailable. Please check server configuration.'
       });
     }
 
@@ -1398,6 +1409,15 @@ app.put('/api/clinical-trials/:id', authenticateToken, async (req, res) => {
       return res.status(400).json({
         success: false,
         message: 'Trial name is required'
+      });
+    }
+
+    // Check if Supabase clients are configured
+    if (!supabase) {
+      console.warn('⚠️  Supabase client not configured - cannot update clinical trials');
+      return res.status(503).json({
+        success: false,
+        message: 'Database service unavailable. Please check server configuration.'
       });
     }
 
@@ -2038,6 +2058,7 @@ app.get('/api/news', authenticateToken, async (req, res) => {
   try {
     console.log('📄 Getting news items...');
 
+
     // Get user's organization and role
     const userId = req.user.userId;
     const { data: userProfile, error: profileError } = await supabaseAdmin
@@ -2528,41 +2549,9 @@ app.get('/api/hospitals', authenticateToken, async (req, res) => {
       console.log('Supabase not configured, using mock data');
     }
 
-    // If no real data, use mock data
+    // If no data from database, return empty array
     if (transformedHospitals.length === 0) {
-      console.log('No data from Supabase, using mock data for testing');
-      transformedHospitals = [
-        {
-          id: '1',
-          name: 'City General Hospital',
-          location: 'New York, NY',
-          principal_investigator: 'Dr. Michael Johnson',
-          consented_patients: 150,
-          randomized_patients: 120,
-          consent_rate: 80.00,
-          created_at: new Date().toISOString()
-        },
-        {
-          id: '2',
-          name: 'Metro Medical Center',
-          location: 'Los Angeles, CA',
-          principal_investigator: 'Dr. Sarah Williams',
-          consented_patients: 200,
-          randomized_patients: 180,
-          consent_rate: 90.00,
-          created_at: new Date().toISOString()
-        },
-        {
-          id: '3',
-          name: 'Regional Health System',
-          location: 'Chicago, IL',
-          principal_investigator: 'Dr. Robert Brown',
-          consented_patients: 125,
-          randomized_patients: 100,
-          consent_rate: 80.00,
-          created_at: new Date().toISOString()
-        }
-      ];
+      console.log('No hospital data available from database');
     }
 
     // Calculate summary statistics
@@ -4021,6 +4010,7 @@ app.delete('/api/study-protocols/:id', authenticateToken, async (req, res) => {
 // Get all PDF documents (now from news_updates table)
 app.get('/api/pdfs', authenticateToken, async (req, res) => {
   try {
+
     const { data, error } = await supabase
       .from('news_updates')
       .select('*')
@@ -4269,51 +4259,26 @@ app.delete('/api/pdfs/:id', authenticateToken, async (req, res) => {
 // ===== ANALYTICS =====
 
 // Get analytics data (temporary unauthenticated access for testing)
-app.get('/api/analytics', async (req, res) => {
+app.get('/api/analytics', authenticateToken, requireSupabase, async (req, res) => {
   try {
-    // Mock data for testing
-    const mockAnalytics = [
-      {
-        id: '1',
-        user_id: 'user1',
-        user_name: 'Dr. John Smith',
-        user_email: 'john.smith@hospital1.com',
-        site: 'City General Hospital',
-        total_app_opens: 45,
-        last_app_open: new Date().toISOString(),
-        tab_views: { '0': 15, '1': 8, '2': 12, '3': 5, '4': 3, '5': 2 },
-        most_viewed_tab: '0',
-        created_at: new Date().toISOString()
-      },
-      {
-        id: '2',
-        user_id: 'user2',
-        user_name: 'Dr. Sarah Williams',
-        user_email: 'sarah.williams@hospital2.com',
-        site: 'Metro Medical Center',
-        total_app_opens: 32,
-        last_app_open: new Date().toISOString(),
-        tab_views: { '0': 10, '1': 12, '2': 8, '3': 2 },
-        most_viewed_tab: '1',
-        created_at: new Date().toISOString()
-      },
-      {
-        id: '3',
-        user_id: 'user3',
-        user_name: 'Dr. Robert Brown',
-        user_email: 'robert.brown@hospital3.com',
-        site: 'Regional Health System',
-        total_app_opens: 28,
-        last_app_open: new Date().toISOString(),
-        tab_views: { '0': 8, '2': 15, '3': 5 },
-        most_viewed_tab: '2',
-        created_at: new Date().toISOString()
-      }
-    ];
+    // Query real analytics data from database
+    const { data, error } = await supabase
+      .from('analytics')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Analytics query error:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to fetch analytics data',
+        error: error.message
+      });
+    }
 
     res.json({
       success: true,
-      analytics: mockAnalytics
+      analytics: data || []
     });
   } catch (err) {
     console.error('Analytics fetch error:', err);
@@ -4522,9 +4487,10 @@ app.use((error, req, res, next) => {
 // Get conversations for the current user
 app.get('/api/messages/conversations', authenticateToken, requireSupabaseAdmin, async (req, res) => {
   try {
+
     // Use supabaseAdmin to bypass RLS (service role key required)
     // RLS policies check auth.uid() which isn't available with our custom JWT
-    
+
     // Get all users that have exchanged messages with the current user
     const { data: sentMessages, error: sentError } = await supabaseAdmin
       .from('messages')
