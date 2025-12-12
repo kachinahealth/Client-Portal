@@ -196,16 +196,21 @@
 
             // Add Trial button
             const saveTrialBtn = document.getElementById('saveTrialBtn');
+            console.log('Setting up saveTrialBtn event listener. Button found:', !!saveTrialBtn);
             if (saveTrialBtn) {
                 saveTrialBtn.addEventListener('click', function(e) {
                     e.preventDefault();
-                    console.log('Add Trial button clicked');
+                    console.log('🎯 Add Trial button clicked - calling saveTrial()');
+                    console.log('saveTrial function exists:', typeof saveTrial === 'function');
                     try {
                         saveTrial();
                     } catch (error) {
-                        console.error('Error calling saveTrial:', error);
+                        console.error('❌ Error calling saveTrial:', error);
                     }
                 });
+                console.log('✅ saveTrialBtn event listener attached');
+            } else {
+                console.error('❌ saveTrialBtn not found in DOM');
             }
 
             // Add Hospital button
@@ -2966,6 +2971,8 @@
         }
 
         async function saveTrial() {
+            console.log('🚀 saveTrial function STARTED');
+
             const trialName = document.getElementById('trialName').value.trim();
             const description = document.getElementById('trialDescription').value.trim();
             const status = document.getElementById('trialStatus').value;
@@ -2973,12 +2980,30 @@
             const endDate = document.getElementById('trialEndDate').value;
             const token = localStorage.getItem('token');
 
-            console.log('📤 saveTrial called with:', { trialName, description, status, isEditing: editingTrialId !== null });
+            console.log('📤 saveTrial called with:', {
+                trialName,
+                description,
+                status,
+                startDate,
+                endDate,
+                token: token ? 'PRESENT' : 'MISSING',
+                apiBaseUrl: window.API_BASE_URL,
+                isEditing: editingTrialId !== null
+            });
 
             if (!trialName) {
+                console.log('❌ Validation failed: trialName is empty');
                 showAlert('trialAlert', 'Please enter a trial name', 'error');
                 return;
             }
+
+            if (!token) {
+                console.log('❌ Authentication failed: No JWT token found');
+                showAlert('trialAlert', 'You must be logged in to add trials', 'error');
+                return;
+            }
+
+            console.log('✅ Validation passed, proceeding with API call');
 
             try {
                 // Determine if we're adding or editing
@@ -2986,17 +3011,37 @@
                 const method = isEditing ? 'PUT' : 'POST';
                 const url = isEditing ? `${window.API_BASE_URL}/api/clinical-trials/${editingTrialId}` : `${window.API_BASE_URL}/api/clinical-trials`;
 
-                    const response = await fetch(url, {
-                        method: method,
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': token ? `Bearer ${token}` : ''
-                        },
+                console.log('🌐 Making API request:', {
+                    method,
+                    url,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': token ? 'Bearer present' : 'Bearer missing'
+                    },
+                    body: {
+                        name: trialName,
+                        description: description,
+                        isActive: status === 'active'
+                    }
+                });
+
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': token ? `Bearer ${token}` : ''
+                    },
                     body: JSON.stringify({
                         name: trialName,
                         description: description,
                         isActive: status === 'active'
                     })
+                });
+
+                console.log('📡 API Response received:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    ok: response.ok
                 });
 
                 const data = await response.json();
