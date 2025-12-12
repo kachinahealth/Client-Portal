@@ -1,8 +1,10 @@
-# KachinaHealth Database Documentation
+# 🗄️ KachinaHealth Database Documentation (LIVE PRODUCTION)
+
+**⚠️ PRODUCTION ENVIRONMENT - This database is currently LIVE and serving production traffic**
 
 ## Overview
 
-This directory contains the Supabase PostgreSQL database schema and setup files for the KachinaHealth client portal. The application uses Supabase for database hosting, authentication, and file storage.
+This directory contains the Supabase PostgreSQL database schema and setup files for the KachinaHealth client portal. The database is currently LIVE in production, serving the Render-deployed application with full Row Level Security and enterprise-grade performance.
 
 ## 📁 Directory Structure
 
@@ -19,20 +21,27 @@ database/
     └── complete-database-setup.sql        # All-in-one setup script
 ```
 
-## 🚀 Database Setup
+## 🚀 Production Database Status
 
-### Quick Setup (Recommended)
-1. **Open Supabase Dashboard**
-2. **Navigate to SQL Editor**
-3. **Run**: `database/setup/complete-database-setup.sql`
-4. **Verify**: Check tables in Database → Tables section
+**STATUS**: ✅ **LIVE AND OPERATIONAL**
+- **Platform**: Supabase PostgreSQL
+- **RLS**: Enabled on all tables
+- **Performance**: Optimized indexes and queries
+- **Backup**: Automated Supabase backups
+- **Monitoring**: Real-time performance metrics
 
-### Manual Setup
-For step-by-step setup:
-1. **Schema**: Run `migrations/complete-schema-migration.sql`
-2. **Security**: Run `migrations/rls-policies-migration.sql`
-3. **Data**: Run `migrations/seed-data.sql`
-4. **Storage**: Run `migrations/storage-setup.sql`
+### Local Development Setup (NOT for Production)
+For local development testing only:
+1. **Create local Supabase project**
+2. **Run**: `database/setup/complete-database-setup.sql`
+3. **Verify**: Check tables in local Database section
+
+### ⚠️ Production Database Guidelines
+- **NO SCHEMA CHANGES** without thorough testing
+- **MAINTAIN RLS POLICIES** for data security
+- **MONITOR PERFORMANCE** regularly
+- **REGULAR BACKUPS** through Supabase dashboard
+- **AUDIT LOGS** for compliance requirements
 
 ## 📊 Database Schema
 

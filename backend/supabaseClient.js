@@ -14,18 +14,28 @@ if (!supabaseUrl || !supabaseAnonKey) {
 // Create client with anon key for regular operations (only if credentials are available)
 let supabase = null;
 if (supabaseUrl && supabaseAnonKey) {
-  supabase = createClient(supabaseUrl, supabaseAnonKey);
+  try {
+    supabase = createClient(supabaseUrl, supabaseAnonKey);
+  } catch (error) {
+    console.error('Failed to create Supabase client:', error.message);
+    supabase = null;
+  }
 }
 
 // Create admin client with service role key for admin operations
 let supabaseAdmin = null;
 if (supabaseServiceKey && supabaseUrl) {
-  supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  });
+  try {
+    supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    });
+  } catch (error) {
+    console.error('Failed to create Supabase Admin client:', error.message);
+    supabaseAdmin = null;
+  }
 }
 
 module.exports = { supabase, supabaseAdmin };
